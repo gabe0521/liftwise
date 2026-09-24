@@ -1,0 +1,2107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0e7c86">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="CLNO Scan">
+<meta name="description" content="CLNO tray ticket scanner: scan, review, and track contact lens reorder dates offline.">
+<link rel="manifest" href="clno-manifest.json">
+<link rel="apple-touch-icon" href="clno-icon-192.png">
+<link rel="icon" type="image/png" href="clno-icon-192.png">
+<title>CLNO Scan</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#f2f5f6; --card:#ffffff; --line:#dde4e7;
+  --txt:#16272b; --dim:#5b6f75; --faint:#8aa0a6;
+  --teal:#0e7c86; --teal-deep:#0a5f67; --teal-wash:#e3f2f4;
+  --green:#1a7f4b; --red:#c0392b; --orange:#b26a00;
+  --r:14px;
+}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;color:var(--txt);background:var(--bg);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,"Segoe UI",Roboto,Arial,sans-serif;
+  font-size:16px;line-height:1.45;min-height:100vh}
+.wrap{max-width:520px;margin:0 auto;padding:0 16px calc(120px + env(safe-area-inset-bottom))}
+header.apphead{position:sticky;top:0;z-index:20;background:rgba(242,245,246,.94);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  padding:calc(12px + env(safe-area-inset-top)) 4px 10px;border-bottom:1px solid var(--line)}
+.apphead h1{margin:0;font-size:20px;letter-spacing:.02em}
+.apphead h1 .dot{color:var(--teal)}
+.apphead p{margin:2px 0 0;font-size:12px;color:var(--dim)}
+.net{float:right;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;margin-top:2px}
+.net.on{background:#e3f4e8;color:var(--green)}
+.net.off{background:#fbe7e3;color:var(--red)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:16px;margin:14px 0;box-shadow:0 1px 3px rgba(22,39,43,.06)}
+.card h2{margin:0 0 10px;font-size:16px}
+.card h3{margin:14px 0 8px;font-size:14px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+.btn{display:block;width:100%;border:0;border-radius:var(--r);padding:16px;font-size:17px;font-weight:700;
+  font-family:inherit;cursor:pointer;margin:10px 0;min-height:56px}
+.btn:active{transform:scale(.985)}
+.btn.primary{background:var(--teal);color:#fff}
+.btn.primary:active{background:var(--teal-deep)}
+.btn.ghost{background:var(--card);color:var(--teal);border:2px solid var(--teal)}
+.btn.danger{background:#fff;color:var(--red);border:2px solid var(--red)}
+.btn.small{padding:10px;font-size:14px;min-height:44px}
+.row2{display:flex;gap:10px}.row2 .btn{flex:1}
+label.f{display:block;margin:12px 0 4px;font-size:13px;font-weight:700;color:var(--dim)}
+input[type=text],input[type=tel],input[type=email],input[type=date],input[type=number],select,textarea{
+  width:100%;font-size:16px;font-family:inherit;padding:12px;border:1.5px solid var(--line);
+  border-radius:10px;background:#fff;color:var(--txt)}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--teal);border-color:var(--teal)}
+textarea{min-height:64px;resize:vertical}
+.hint{font-size:12px;color:var(--faint);margin:4px 0 0}
+.calc{background:var(--teal-wash);border:1px solid #c4e2e6;border-radius:var(--r);padding:12px 14px;margin:14px 0}
+.calc .big{font-size:20px;font-weight:800}
+.calc .sub{font-size:13px;color:var(--dim)}
+.warn{background:#fdeeee;border:1px solid #f3c1b8;border-radius:var(--r);padding:12px 14px;margin:14px 0;
+  color:var(--red);font-weight:700}
+.okmsg{background:#e9f6ee;border:1px solid #bfe3cd;border-radius:var(--r);padding:12px 14px;margin:14px 0;
+  color:var(--green);font-weight:700}
+.note{background:#fff6e5;border:1px solid #f1d9a8;border-radius:var(--r);padding:10px 12px;margin:10px 0;
+  color:var(--orange);font-size:14px;font-weight:600}
+.note p{margin:2px 0}
+.linkbtn{border:0;background:none;padding:6px 0;font:inherit;font-size:13px;font-weight:700;
+  color:var(--teal);text-decoration:underline;cursor:pointer}
+.item{border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0;background:#fff}
+.item .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.item .nm{font-weight:800;font-size:16px}
+.item .rd{font-weight:700;color:var(--teal);white-space:nowrap}
+.item .meta{font-size:13px;color:var(--dim);margin-top:4px}
+.item .acts{display:flex;gap:8px;margin-top:10px}
+.item .acts button{flex:1;padding:10px;border-radius:10px;font-size:14px;font-weight:700;font-family:inherit;
+  border:1.5px solid var(--line);background:#fff;cursor:pointer}
+.item .acts button.del{color:var(--red);border-color:var(--red)}
+.monthhead{font-size:15px;font-weight:800;margin:20px 0 4px;color:var(--teal-deep)}
+.empty{color:var(--faint);text-align:center;padding:26px 10px;font-size:14px}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:#fff;border-top:1px solid var(--line);
+  padding:8px 8px calc(8px + env(safe-area-inset-bottom));display:flex;gap:6px}
+nav.tabs button{flex:1;border:0;background:none;font-family:inherit;font-size:13px;font-weight:700;
+  color:var(--dim);padding:12px 4px;border-radius:10px;cursor:pointer;min-height:52px}
+nav.tabs button.active{color:var(--teal);background:var(--teal-wash)}
+.screen{display:none}.screen.active{display:block}
+.status{font-size:13px;color:var(--dim);min-height:20px;margin:6px 0}
+.progress{height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin:8px 0;display:none}
+.progress i{display:block;height:100%;width:0;background:var(--teal);transition:width .2s}
+details.raw{margin-top:10px;font-size:12px;color:var(--dim)}
+details.raw pre{white-space:pre-wrap;background:#f7fafb;border:1px solid var(--line);border-radius:8px;
+  padding:10px;max-height:180px;overflow:auto}
+.hiddenfile{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.kv{display:flex;justify-content:space-between;font-size:14px;padding:6px 0;border-bottom:1px dashed var(--line)}
+.kv b{font-weight:800}
+</style>
+</head>
+<body>
+<header class="apphead">
+  <span id="netBadge" class="net on">Online</span>
+  <h1>CLNO<span class="dot">·</span>Scan</h1>
+  <p>Tray ticket scanner &mdash; reorder tracker</p>
+</header>
+<div class="wrap">
+
+  <!-- ============ SCAN ============ -->
+  <section id="screen-scan" class="screen active">
+    <div class="card">
+      <h2>New ticket</h2>
+      <button class="btn primary" id="btnCamera">&#128247; Scan ticket</button>
+      <button class="btn ghost" id="btnUpload">&#128193; Upload photo</button>
+      <button class="btn ghost" id="btnManual">&#9000;&#65039; Enter manually</button>
+      <input type="file" id="fileCamera" accept="image/*" capture="environment" class="hiddenfile">
+      <input type="file" id="fileUpload" accept="image/*" class="hiddenfile">
+      <div class="progress" id="ocrProg"><i></i></div>
+      <div class="status" id="ocrStatus"></div>
+      <p class="hint">First scan needs internet so the reader can download. After that it works offline.</p>
+    </div>
+    <div class="card">
+      <h2>How it works</h2>
+      <div class="kv"><span>Snap the tray ticket</span><b>1</b></div>
+      <div class="kv"><span>Check the fields it found</span><b>2</b></div>
+      <div class="kv"><span>Accept &rarr; saved to Main + its CLNO contact month</span><b>3</b></div>
+      <div class="kv"><span>One-eye order? Put 0 for the other eye</span><b>0</b></div>
+      <div class="kv" style="border:0"><span>Annual (12-mo) supplies are rejected</span><b>&#10060;</b></div>
+    </div>
+  </section>
+
+  <!-- ============ REVIEW ============ -->
+  <section id="screen-review" class="screen">
+    <div class="card">
+      <h2>Review ticket</h2>
+      <div id="reviewAlerts"></div>
+      <div id="scanNotes"></div>
+      <label class="f" for="fPatient">Patient name</label>
+      <input type="text" id="fPatient" autocomplete="off" placeholder="e.g. Jane Smith">
+      <div id="nameHints" style="display:none"></div>
+      <label class="f" for="fEmail">Email</label>
+      <input type="email" id="fEmail" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="for the CLNO reorder email">
+      <p class="hint" id="emailHint" style="display:none">Read off the ticket: check every letter against it. One wrong letter and the email bounces.</p>
+      <div class="row2">
+        <div style="flex:1"><label class="f" for="fOrder">Ticket / Order ID</label>
+          <input type="text" id="fOrder" autocomplete="off" placeholder="optional"></div>
+        <div style="flex:1"><label class="f" for="fDate">Purchase date</label>
+          <input type="date" id="fDate"></div>
+      </div>
+      <label class="f" for="fLens">Lens</label>
+      <select id="fLens"></select>
+      <p class="hint" id="lensPackHint" style="display:none"></p>
+      <div id="lensSuggest" style="display:none"></div>
+      <div id="lensWarn" class="warn" style="display:none"></div>
+      <div class="row2">
+        <div style="flex:1"><label class="f" for="fOD">Boxes OD (right)</label>
+          <input type="number" id="fOD" min="0" max="24" inputmode="numeric" placeholder="0"></div>
+        <div style="flex:1"><label class="f" for="fOS">Boxes OS (left)</label>
+          <input type="number" id="fOS" min="0" max="24" inputmode="numeric" placeholder="0"></div>
+      </div>
+      <label class="f" for="fPhone">Phone (optional)</label>
+      <input type="tel" id="fPhone" autocomplete="off" placeholder="optional">
+      <label class="f" for="fNotes">Notes</label>
+      <textarea id="fNotes" placeholder="optional"></textarea>
+      <div class="calc" id="calcBox">
+        <div class="big" id="calcMonths">&mdash;</div>
+        <div class="sub" id="calcReorder"></div>
+      </div>
+      <button class="btn primary" id="btnAccept">Accept into tracker</button>
+      <button class="btn ghost" id="btnDiscard">Discard</button>
+      <details class="raw" id="rawWrap" style="display:none">
+        <summary>What the reader saw (raw text)</summary>
+        <pre id="rawText"></pre>
+        <button type="button" class="btn ghost small" id="btnCopyRaw">Copy raw text</button>
+      </details>
+    </div>
+  </section>
+
+  <!-- ============ TRACKER ============ -->
+  <section id="screen-tracker" class="screen">
+    <div class="card">
+      <h2>Tracker <span id="trkCount" style="color:var(--faint);font-weight:400"></span></h2>
+      <div id="trkList"></div>
+    </div>
+  </section>
+
+  <!-- ============ EXPORT ============ -->
+  <section id="screen-export" class="screen">
+    <div class="card">
+      <h2>Export</h2>
+      <div class="kv"><span>Rows in Main</span><b id="expMain">0</b></div>
+      <div class="kv"><span>Reorder months</span><b id="expMonths">0</b></div>
+      <div class="kv" style="border:0"><span>Columns</span><b style="font-weight:400;font-size:12px">Patient, Email, Ticket/Order ID, Purchase Date, Lens, Boxes, Months Supply, Reorder Date, Notes</b></div>
+      <button class="btn primary" id="btnExport">&#11015;&#65039; Export .xlsx</button>
+      <div class="status" id="expStatus"></div>
+      <p class="hint">The file opens in Excel / Google Sheets. Import it into your CLNO Guests 2026 sheet. First export needs internet to load the file writer; after that it's cached.</p>
+    </div>
+    <div class="card">
+      <h2>Storage</h2>
+      <div class="kv"><span>Rows stored on this phone</span><b id="expRows">0</b></div>
+      <div class="kv" style="border:0"><span>Data lives in this phone only</span><b style="font-weight:400;font-size:12px">localStorage</b></div>
+      <button class="btn danger small" id="btnWipe">Delete all tracker data</button>
+    </div>
+  </section>
+
+</div>
+<nav class="tabs">
+  <button data-tab="scan" class="active">&#128247;<br>Scan</button>
+  <button data-tab="review">&#9998;<br>Review <span id="revBadge"></span></button>
+  <button data-tab="tracker">&#128203;<br>Tracker</button>
+  <button data-tab="export">&#11015;&#65039;<br>Export</button>
+</nav>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script id="core">
+/* ============================================================
+   CLNO core logic — pure functions, no DOM.
+   (Kept in a separate script tag so it can be unit-tested.)
+   ============================================================ */
+// PRICEBOOK entries: [name, type, modality, pack, boxes12mo]
+// June 2026 Target Optical CL price book (114 lenses; SilSoft vials left out).
+var PRICEBOOK = [
+["1-Day Acuvue Moist (30)","Sphere","Daily disposable",30,24],
+["1-Day Acuvue Moist (90)","Sphere","Daily disposable",90,8],
+["1-Day Acuvue Moist Multifocal (30)","Multifocal","Daily disposable",30,24],
+["1-Day Acuvue Moist Multifocal (90)","Multifocal","Daily disposable",90,8],
+["1-Day Acuvue Moist for Astigmatism (30)","Toric","Daily disposable",30,24],
+["1-Day Acuvue Moist for Astigmatism (90)","Toric","Daily disposable",90,8],
+["ACUVUE OASYS MAX 1-DAY (30)","Sphere","Daily disposable",30,24],
+["ACUVUE OASYS MAX 1-DAY (90)","Sphere","Daily disposable",90,8],
+["ACUVUE OASYS MAX 1-DAY Multifocal (30)","Multifocal","Daily disposable",30,24],
+["ACUVUE OASYS MAX 1-DAY Multifocal (90)","Multifocal","Daily disposable",90,8],
+["ACUVUE OASYS MAX 1-DAY for Astigmatism","Toric","Daily disposable",30,24],
+["ACUVUE OASYS MAX 1-DAY Multifocal for Astigmatism","Toric","Daily disposable",30,24],
+["AIR OPTIX Colors","Sphere","Monthly",6,4],
+["AIR OPTIX Colors - 2 Pack","Sphere","Monthly",2,12],
+["AIR OPTIX Night & Day Aqua","Sphere","Monthly",6,4],
+["AIR OPTIX plus HydraGlyde 6 pk","Sphere","Monthly",6,4],
+["AIR OPTIX plus HydraGlyde Astigmatism","Sphere","Monthly",6,4],
+["AIR OPTIX plus HydraGlyde Multifocal","Multifocal","Monthly",6,4],
+["Acuvue 2","Sphere","2-week",6,8],
+["Acuvue Oasys (12)","Sphere","2-week",12,4],
+["Acuvue Oasys (24)","Sphere","2-week",24,2],
+["Acuvue Oasys 1-Day","Sphere","Daily disposable",90,8],
+["Acuvue Oasys 1-Day for Astigmatism (30)","Toric","Daily disposable",30,24],
+["Acuvue Oasys 1-Day for Astigmatism (90)","Toric","Daily disposable",90,8],
+["Acuvue Oasys for Astigmatism","Toric","2-week",6,8],
+["Acuvue Oasys for Multifocal","Multifocal","2-week",6,8],
+["Acuvue Vita","Sphere","Monthly",6,4],
+["Acuvue Vita (12)","Sphere","Monthly",12,2],
+["Acuvue Vita for Astigmatism","Toric","Monthly",6,4],
+["Avaira Vitality","Sphere","2-week",6,8],
+["Avaira Vitality Toric","Toric","2-week",6,8],
+["Biofinity Energys","Sphere","Monthly",6,4],
+["Biofinity","Sphere","Monthly",6,4],
+["Biofinity Multifocal","Multifocal","Monthly",6,4],
+["Biofinity Multifocal Toric","Multifocal","Monthly",6,4],
+["Biofinity Toric","Toric","Monthly",6,4],
+["Biofinity Toric XR","Toric","Monthly",6,4],
+["Biofinity XR","Sphere","Monthly",6,4],
+["Biotrue ONEday (30)","Sphere","Daily disposable",30,24],
+["Biotrue ONEday (90)","Sphere","Daily disposable",90,8],
+["Biotrue ONEday for Astigmatism (30)","Toric","Daily disposable",30,24],
+["Biotrue ONEday for Astigmatism (90)","Toric","Daily disposable",90,8],
+["Biotrue ONEday for Presbyopia (30)","Multifocal","Daily disposable",30,24],
+["Biotrue ONEday for Presbyopia (90)","Multifocal","Daily disposable",90,8],
+["DAILIES AquaComfort Plus (30)","Sphere","Daily disposable",30,24],
+["DAILIES AquaComfort Plus (90)","Sphere","Daily disposable",90,8],
+["DAILIES AquaComfort Plus Multifocal (30)","Multifocal","Daily disposable",30,24],
+["DAILIES AquaComfort Plus Multifocal (90)","Multifocal","Daily disposable",90,8],
+["DAILIES AquaComfort Plus Toric (30)","Toric","Daily disposable",30,24],
+["DAILIES AquaComfort Plus Toric (90)","Toric","Daily disposable",90,8],
+["DAILIES Colors (30)","Sphere","Daily disposable",30,24],
+["DAILIES Colors (90)","Sphere","Daily disposable",90,8],
+["DAILIES TOTAL1 (30)","Sphere","Daily disposable",30,24],
+["DAILIES TOTAL1 (90)","Sphere","Daily disposable",90,8],
+["DAILIES TOTAL1 Multifocal (30)","Multifocal","Daily disposable",30,24],
+["DAILIES TOTAL1 Multifocal (90)","Multifocal","Daily disposable",90,8],
+["DAILIES TOTAL1 for Astigmatism (30)","Toric","Daily disposable",30,24],
+["DAILIES TOTAL1 for Astigmatism (90)","Toric","Daily disposable",90,8],
+["INFUSE (90)","Sphere","Daily disposable",90,8],
+["INFUSE MF (90)","Multifocal","Daily disposable",90,8],
+["INFUSE for Astigmatism (90)","Toric","Daily disposable",90,8],
+["MiSight 1 day","Sphere","Daily disposable",180,4],
+["MiSight 1 day","Sphere","Daily disposable",90,8],
+["Miru 1-Day Flat Pack (30)","Sphere","Daily disposable",30,24],
+["Miru 1-Day Flat Pack (90)","Sphere","Daily disposable",90,8],
+["MyDay Energys (90)","Sphere","Daily disposable",90,8],
+["MyDay (90)","Sphere","Daily disposable",90,8],
+["MyDay Multifocal (90)","Multifocal","Daily disposable",90,8],
+["MyDay Toric (90)","Toric","Daily disposable",90,8],
+["PRECISION7 (12)","Sphere","Weekly",12,8],
+["PRECISION7 (27)","Sphere","Weekly",27,4],
+["PRECISION7 for Astigmatism (12)","Toric","Weekly",12,8],
+["PRECISION7 for Astigmatism (27)","Toric","Weekly",27,4],
+["PRECISON1 (30)","Sphere","Daily disposable",30,24],
+["PRECISON1 (90)","Sphere","Daily disposable",90,8],
+["PRECISON1 for Astigmatism (30)","Toric","Daily disposable",30,24],
+["PRECISON1 for Astigmatism (90)","Toric","Daily disposable",90,8],
+["Proclear","Sphere","Monthly",6,4],
+["Proclear 1 Day (90)","Sphere","Daily disposable",90,8],
+["Proclear 1 Day Multifocal (90)","Multifocal","Daily disposable",90,8],
+["Proclear Multifocal","Multifocal","Monthly",6,4],
+["Proclear Multifocal Toric M","Toric","Monthly",6,4],
+["Proclear Multifocal XR","Multifocal","Monthly",6,4],
+["Proclear Toric 6 pack","Toric","Monthly",6,4],
+["Proclear Toric XR","Toric","Monthly",6,4],
+["TOTAL30","Sphere","Monthly",6,4],
+["TOTAL30 Multifocal","Multifocal","Monthly",6,4],
+["TOTAL30 for Astigmatism","Toric","Monthly",6,4],
+["TOTAL30 Multifocal for Astigmatism","Toric","Monthly",6,4],
+["ULTRA for Astigmatism","Toric","Monthly",6,4],
+["ULTRA Multifocal for Astigmatism","Toric","Monthly",6,4],
+["ULTRA for Presbyopia","Multifocal","Monthly",6,4],
+["ULTRA with Moisture Seal","Sphere","Monthly",6,4],
+["clariti 1-Day (90)","Sphere","Daily disposable",90,8],
+["clariti 1-Day Multifocal (30)","Multifocal","Daily disposable",30,24],
+["clariti 1-Day Multifocal (90)","Multifocal","Daily disposable",90,8],
+["clariti 1-Day Multifocal 3 Add (30)","Multifocal","Daily disposable",30,24],
+["clariti 1-Day Multifocal 3 Add (90)","Multifocal","Daily disposable",90,8],
+["clariti 1-Day Toric (30)","Toric","Daily disposable",30,24],
+["clariti 1-Day Toric (90)","Toric","Daily disposable",90,8],
+["up&up 1 day","Sphere","Daily disposable",90,8],
+["up&up 1 day for astigmatism","Toric","Daily disposable",90,8],
+["up&up 1 day multifocal","Multifocal","Daily disposable",90,8],
+["up&up 1 day performance","Sphere","Daily disposable",90,8],
+["up&up 1 day performance for astigmatism","Toric","Daily disposable",90,8],
+["up&up 1 day performance multifocal","Multifocal","Daily disposable",90,8],
+["up&up 1 day performance+","Sphere","Daily disposable",90,8],
+["up&up 2-week","Sphere","2-week",6,8],
+["up&up 2-week for astigmatism","Toric","2-week",6,8],
+["up&up Monthly Performance","Sphere","Monthly",6,4],
+["up&up Monthly Performance Multifocal","Multifocal","Monthly",6,4],
+["up&up Monthly Performance Plus","Sphere","Monthly",6,4],
+["up&up Monthly Performance XR","Sphere","Monthly",6,4],
+["up&up Monthly Performance for Astig","Toric","Monthly",6,4]
+];
+
+function norm(s){
+  return String(s == null ? "" : s).toLowerCase()
+    .replace(/[\u00ae\u2122\u00a9]/g, "")
+    .replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+// ---- fuzzy lens matching (conservative: strong match or nothing) ----
+function levenshtein(a, b){
+  var la = a.length, lb = b.length;
+  if(!la) return lb;
+  if(!lb) return la;
+  var prev = [], cur = [], i, j;
+  for(j = 0; j <= lb; j++) prev[j] = j;
+  for(i = 1; i <= la; i++){
+    cur[0] = i;
+    for(j = 1; j <= lb; j++){
+      var cost = a.charAt(i - 1) === b.charAt(j - 1) ? 0 : 1;
+      var v = prev[j] + 1;
+      var w = cur[j - 1] + 1;
+      if(w < v) v = w;
+      w = prev[j - 1] + cost;
+      if(w < v) v = w;
+      cur[j] = v;
+    }
+    var tmp = prev; prev = cur; cur = tmp;
+  }
+  return prev[lb];
+}
+
+// token similarity 0..1 (1 = identical). Tolerates small OCR typos.
+function tokSim(a, b){
+  if(a === b) return 1;
+  var la = a.length, lb = b.length;
+  // OCR often truncates long words ("Astigma" for "Astigmatism").
+  if(Math.min(la, lb) >= 4 && (b.indexOf(a) === 0 || a.indexOf(b) === 0)) return 0.85;
+  if(Math.abs(la - lb) > 2) return 0;
+  if(Math.min(la, lb) < 3) return 0;
+  return 1 - levenshtein(a, b) / Math.max(la, lb);
+}
+
+function entryTokens(e){
+  return norm(e[0]).split(" ").filter(function(w){ return w.length > 1; });
+}
+
+// fraction of the LARGER token set matched (fuzzily), 0..1 —
+// short entries can't win just because their one token appears.
+function lensScore(e, textToks){
+  var et = entryTokens(e);
+  if(!et.length) return 0;
+  var sum = 0;
+  for(var i = 0; i < et.length; i++){
+    var best = 0;
+    for(var j = 0; j < textToks.length; j++){
+      var s = tokSim(et[i], textToks[j]);
+      if(s > best){ best = s; if(best === 1) break; }
+    }
+    if(best >= 0.6) sum += best;
+  }
+  return sum / Math.max(et.length, textToks.length);
+}
+
+// Ranked lens matches for free text. Items: {idx, score, packHit, adj}.
+// pack (optional): a known Pack Size. Without it, a pack number typed in the
+// text ("MiSight 1 day 180") still counts. Never feed this the whole ticket:
+// stray numbers there (a 30 in a time, a 90 axis) used to boost daily lenses.
+function rankLenses(text, pack){
+  var toks = norm(text).split(" ").filter(function(w){ return w.length > 1; });
+  if(!toks.length) return [];
+  var seen = {}, uniq = [];
+  toks.forEach(function(w){ if(!seen[w]){ seen[w] = 1; uniq.push(w); } });
+  var packN = Number(pack) || 0;
+  var out = [];
+  for(var i = 0; i < PRICEBOOK.length; i++){
+    var e = PRICEBOOK[i];
+    var score = lensScore(e, uniq);
+    if(score <= 0) continue;
+    var packHit = packN ? e[3] === packN : uniq.indexOf(String(e[3])) !== -1;
+    var adj = score + (packHit ? 0.31 : 0) - (packN && !packHit ? 0.31 : 0);
+    out.push({idx: i, score: score, packHit: packHit, adj: adj});
+  }
+  out.sort(function(a, b){ return b.adj - a.adj; });
+  return out;
+}
+
+function lensObj(idx){
+  var e = PRICEBOOK[idx];
+  return {idx: idx, name: e[0], type: e[1], modality: e[2], pack: e[3], boxes12mo: e[4]};
+}
+
+// Find the price-book lens whose name best matches free text.
+// Auto-selects ONLY on a strong, unambiguous match — otherwise null, never a guess.
+function findLens(text, pack){
+  var r = rankLenses(text, pack);
+  if(!r.length) return null;
+  var best = r[0];
+  if(best.adj < 0.7) return null;
+  if(r.length > 1 && (best.adj - r[1].adj) < 0.2) return null;
+  return lensObj(best.idx);
+}
+
+// Top-N fuzzy suggestions for the manual picker (one tap picks).
+function suggestLenses(text, n, pack){
+  return rankLenses(text, pack).slice(0, n || 3).map(function(x){ return lensObj(x.idx); });
+}
+
+// Coverage of a price-book entry by free text: sum of best per-token
+// similarities over the entry-token count. Used for layout-anchored text
+// (e.g. the Collection column), where the text is already scoped and extra
+// tokens (color codes) must not dilute the score.
+function lensCoverage(e, textToks){
+  var et = entryTokens(e);
+  var sum = 0, matched = 0, i, j;
+  for(i = 0; i < et.length; i++){
+    var best = 0;
+    for(j = 0; j < textToks.length; j++){
+      var s = tokSim(et[i], textToks[j]);
+      if(s > best){ best = s; if(best === 1) break; }
+    }
+    if(best >= 0.6){ sum += best; matched++; }
+  }
+  return {cov: et.length ? sum / et.length : 0, matched: matched};
+}
+
+// Scoped lens match for Collection-column text. Ranks by how many entry
+// tokens are explained, then by coverage, so short entries ("Acuvue 2")
+// can't win on a single shared token. Auto-selects only on strong
+// coverage; an equal-token near-tie needs a clear coverage margin,
+// otherwise null (never a guess).
+function findLensScoped(text){
+  var toks = norm(text).split(" ").filter(function(w){ return w.length > 1; });
+  if(!toks.length) return null;
+  var ranked = [];
+  for(var i = 0; i < PRICEBOOK.length; i++){
+    var c = lensCoverage(PRICEBOOK[i], toks);
+    if(c.cov > 0) ranked.push({idx: i, cov: c.cov, matched: c.matched});
+  }
+  ranked.sort(function(a, b){
+    if(b.matched !== a.matched) return b.matched - a.matched;
+    return b.cov - a.cov;
+  });
+  if(!ranked.length) return null;
+  var best = ranked[0];
+  if(best.cov < 0.7) return null;
+  if(ranked.length > 1){
+    var second = ranked[1];
+    if(second.matched === best.matched && (best.cov - second.cov) < 0.2) return null;
+  }
+  return lensObj(best.idx);
+}
+
+// months_supply = total boxes (both eyes) x 12 / boxes_12mo
+function monthsSupply(totalBoxes, boxes12mo){
+  return (Number(totalBoxes) * 12) / Number(boxes12mo);
+}
+
+// 12-month (annual) supplies never enter CLNO.
+function isAnnualSupply(months){
+  return months >= 12 - 1e-9;
+}
+
+function pad2(n){ return (n < 10 ? "0" : "") + n; }
+
+// Reorder date = purchase date + months of supply, stored as first-of-month ISO.
+function reorderDateISO(purchaseISO, months){
+  var parts = String(purchaseISO).split("-");
+  var d = new Date(Number(parts[0]), Number(parts[1]) - 1 + Math.round(Number(months)), 1);
+  return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-01";
+}
+
+// "2027-03-01" -> "Mar 2027"
+function fmtMonthYear(iso){
+  var p = String(iso).split("-");
+  var names = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return names[Number(p[1]) - 1] + " " + p[0];
+}
+
+// "2027-03-01" -> "03/01/2027"
+function fmtDate(iso){
+  var p = String(iso).split("-");
+  return p[1] + "/" + p[2] + "/" + p[0];
+}
+
+// Dedup key: ticket/order ID when available, else patient name + purchase date.
+function dedupKey(orderId, patient, purchaseISO){
+  var oid = norm(orderId).replace(/[^a-z0-9]/g, "");
+  if(oid) return "id:" + oid;
+  return "np:" + norm(patient) + "|" + purchaseISO;
+}
+
+// ---- conservative ticket parsing: a blank field beats a wrong one ----
+
+// Tokens that disqualify a line from being a patient name.
+var NAME_BLOCK = ["contacted","information","phone","tel","date","ticket","order",
+  "invoice","boxes","box","od","os","lens","lenses","total","amount","price",
+  "store","assoc","doctor","dr","email","e-mail","text"];
+
+function stripNamePrefix(s){
+  return String(s).replace(/^(patient|name|guest|customer|email|e-mail|text|home phone|phone)\s*[:#\-]\s*/i, "").trim();
+}
+
+// 2-4 words, mostly letters, each word capitalized, no blocklisted words.
+function looksLikeName(s){
+  var t = String(s == null ? "" : s).trim().replace(/\s+/g, " ");
+  if(t.length < 3 || t.length > 40) return false;
+  var words = t.split(" ");
+  // A single ALL-CAPS token is redaction scribble / OCR garbage, never a name.
+  if(words.length === 1 && /^[A-Z]+[A-Z0-9]*$/.test(words[0])) return false;
+  if(words.length < 2 || words.length > 4) return false;
+  var stripped = t.replace(/\s/g, "");
+  var letters = stripped.replace(/[^A-Za-z\u00C0-\u024F]/g, "").length;
+  if(!stripped.length || letters / stripped.length < 0.8) return false;
+  for(var i = 0; i < words.length; i++){
+    var w = words[i].replace(/[^A-Za-z\u00C0-\u024F]/g, "");
+    if(w.length < 2 || /[0-9]/.test(words[i])) return false;
+    var first = w.charAt(0);
+    if(first !== first.toUpperCase() || first === first.toLowerCase()) return false;
+    if(NAME_BLOCK.indexOf(w.toLowerCase()) !== -1) return false;
+  }
+  return true;
+}
+
+// Marker scribble over a name reads as strings like "EVRY LT" or "EE REE" that pass
+// looksLikeName. Real names have vowels, no one-letter repeats, no long consonant runs
+// (ARMSTRONG and ROTHSCHILD have five; scribble has none of these limits).
+var NAME_2OK = ["NG", "JR", "SR", "ST", "MC"];
+function plausibleName(s){
+  var words = String(s == null ? "" : s).trim().split(/\s+/), longOk = false;
+  for(var i = 0; i < words.length; i++){
+    var w = words[i].replace(/[^A-Za-z\u00C0-\u024F]/g, "").toUpperCase();
+    if(!w) continue;
+    if(w.length >= 2 && /^(.)\1+$/.test(w)) return false;     // "EE", "LLL"
+    if(/([A-Z])\1\1/.test(w)) return false;
+    if(/[BCDFGHJKLMNPQRSTVWXZ]{6,}/.test(w)) return false;
+    if(w.length >= 3){
+      if(!/[AEIOUY\u00C0-\u024F]/.test(w)) return false;
+      longOk = true;
+    } else if(w.length === 2 && !/[AEIOUY]/.test(w) && NAME_2OK.indexOf(w) === -1){
+      return false;
+    }
+  }
+  return longOk;
+}
+// A name good enough to use when only one of its two printed spots could be read.
+function strongName(s){
+  return String(s == null ? "" : s).split(/\s+/).some(function(w){ return w.replace(/[^A-Za-z]/g, "").length >= 4; });
+}
+
+// Dictionary words that are never order IDs.
+var ORDER_WORD_REJECT = ["INFORMATION","TICKET","TICKETS","RECEIPT","RECEIPTS",
+  "INVOICE","INVOICES","ORDER","ORDERS","CONTACT","CONTACTED","LENS","LENSES",
+  "STORE","STORES","PATIENT","PATIENTS","GUEST","GUESTS","PHONE","PHONES",
+  "TOTAL","TOTALS","AMOUNT","AMOUNTS","PRICE","PRICES","DATE","DATES","BOX",
+  "BOXES","OD","OS","BALANCE","CHANGE","DISCOUNT","CASH","CARD","THANK","YOU"];
+
+// A plausible order-code token: 4+ chars of A-Z/0-9/-, at least 2 digits,
+// not a dictionary word. Returns the cleaned token or null.
+function orderIdFromToken(tok){
+  var t = String(tok).toUpperCase().replace(/[^A-Z0-9\-]/g, "").replace(/^-+|-+$/g, "");
+  if(!/^[A-Z0-9][A-Z0-9\-]{3,}$/.test(t)) return null;
+  if((t.match(/[0-9]/g) || []).length < 2) return null;
+  if(ORDER_WORD_REJECT.indexOf(t) !== -1) return null;
+  return t;
+}
+
+// ---- OCR-tolerant helpers (tuned on real Tesseract output) ----
+
+// Every pack size (lenses per box) the price book carries.
+var PACKS = (function(){
+  var seen = {}, out = [];
+  PRICEBOOK.forEach(function(e){ if(!seen[e[3]]){ seen[e[3]] = 1; out.push(e[3]); } });
+  return out.sort(function(a, b){ return a - b; });
+})();
+function isPack(n){ return PACKS.indexOf(Number(n)) !== -1; }
+
+// Fold the characters Tesseract swaps most (0/O, 1/l/I, 5/S) so printed labels
+// still match: "PRESCRIPTI0N", "C0NTACT LENS ORDER", "Sh1p to Primary Address".
+function fold(s){
+  return String(s == null ? "" : s).toLowerCase()
+    .replace(/0/g, "o").replace(/[1|!i]/g, "l").replace(/5/g, "s").replace(/[^a-z]/g, "");
+}
+function hasLabel(line, phrase){ return fold(line).indexOf(fold(phrase)) !== -1; }
+
+// Row label at the start of a table line: "OD (R)", "oD (R)", "0D(R)", "ODR",
+// "OS (L)", "0S (L)", "0s (L)", "05 (L)". Tesseract reads the O as a zero all the
+// time; the old /\bOS\b/ check missed "0S" and silently blanked the OS box count.
+// (A stray table-border mark read as "l", "I", "1" or "|" may sit in front.)
+var EYE_RE = /^[^A-Za-z0-9]{0,3}(?:[lI1|]\s+)?([O0Q])\s?(D|S|5(?=\s*[\(\[{]\s*[L1I|])|[O0](?=\s*[\(\[{]\s*R))\s*(?:[\(\[{]\s*[RL1I|]?\s*[\)\]}]?|[RL](?![A-Za-z]))?(?![A-Za-z])/i;
+function eyeRow(line){
+  var s = String(line == null ? "" : line), m = s.match(EYE_RE);
+  if(!m) return null;
+  // "00 (R)": the D read as a zero; the (R) says right eye
+  return {eye: /^[D0O]$/i.test(m[2]) ? "OD" : "OS", rest: s.slice(m[0].length)};
+}
+
+// Phone: 10 digits only next to a phone-ish label, or in a formatted shape
+// like (214) 555-0199 / 214-555-0199. A bare 10-digit run stays blank — it
+// might be the order number. A labeled line wins over a formatted number
+// elsewhere, and a longer digit run (the 13-digit order ID glued onto the
+// Email line) is never cut down to 10 digits.
+function extractPhone(lines){
+  // "Text:", "Home Phone:" and "Email:" are the phone labels on the CL ORDER ticket.
+  var labelRe = /\b(phone|telephone|tel|mobile|cell|contact|text|home phone|email)\b/i;
+  var fmtRe = /\(\d{3}\)\s*\d{3}[\s.\-]?\d{4}|\b\d{3}[\-.]\d{3}[\-.]\d{4}\b/;
+  var runRe = /(^|[^\d])(\d(?:[\s.\-()]*\d){9})(?![\s.\-()]*\d)/;
+  var i, m;
+  for(i = 0; i < lines.length; i++){
+    if(!labelRe.test(lines[i])) continue;
+    m = lines[i].match(fmtRe);
+    if(m) return m[0];
+    if(/@/.test(lines[i])) continue;   // the Email line: an unformatted digit run there is an ID, not a phone
+    m = lines[i].match(runRe);
+    if(m){
+      var digits = m[2].replace(/\D/g, "");
+      if(digits.length === 10) return digits;
+    }
+  }
+  for(i = 0; i < lines.length; i++){
+    m = lines[i].match(fmtRe);
+    if(m) return m[0];
+  }
+  return "";
+}
+
+// Email: the label reads clean ("Email:") or mangled ("Emad", "Emaii") on real
+// tickets. Only a labeled line counts, and the address must come out whole:
+// OCR's stray space after a dot is closed up ("jordan. sample@x.com"), anything
+// else broken ("example com") leaves it blank. Never taken from an unlabeled line.
+var EMAIL_LABEL_RE = /^\s*(e-?mail|emad|emaii)\s*[:;.]?\s*/i;
+var EMAIL_ADDR_RE = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+function extractEmail(lines){
+  for(var i = 0; i < lines.length; i++){
+    var m = lines[i].match(EMAIL_LABEL_RE);
+    if(!m) continue;
+    var rest = leftColumn(lines[i].slice(m[0].length)).replace(/\s*([.@])\s*/g, "$1").trim();
+    var tok = rest.split(/\s+/)[0] || "";
+    return EMAIL_ADDR_RE.test(tok) ? tok.toLowerCase() : "";
+  }
+  return "";
+}
+
+// Box counts, anchored to OD/OS/right/left labels. Prescription lines like
+// "OD -2.50" do not match. Ambiguous -> blank. (Generic tickets only.)
+function extractBoxes(lines){
+  var od = "", os = "";
+  for(var i = 0; i < lines.length; i++){
+    var l = lines[i], m, n;
+    if(!od){
+      m = l.match(/\b[O0]D\b\s*[:#]?\s*(\d{1,2})\b/);
+      n = m ? Number(m[1]) : 0;
+      if(m && n >= 1 && n <= 24) od = String(n);
+    }
+    if(!os){
+      m = l.match(/\b[O0]S\b\s*[:#]?\s*(\d{1,2})\b/);
+      n = m ? Number(m[1]) : 0;
+      if(m && n >= 1 && n <= 24) os = String(n);
+    }
+    if(!od){
+      m = l.match(/\bright\b\s*[:#]?\s*(\d{1,2})\b/i);
+      n = m ? Number(m[1]) : 0;
+      if(m && n >= 1 && n <= 24) od = String(n);
+    }
+    if(!os){
+      m = l.match(/\bleft\b\s*[:#]?\s*(\d{1,2})\b/i);
+      n = m ? Number(m[1]) : 0;
+      if(m && n >= 1 && n <= 24) os = String(n);
+    }
+  }
+  return {od: od, os: os};
+}
+
+// ---- CL ORDER ticket layout anchors (from the real ticket) ----
+
+// Ticket/Order ID = the digit string under the barcode at top right,
+// near the "CL ORDER / Ticket / Store NNNN" header. A long digit run
+// there is NEVER a phone number, and a labeled phone line is never the ID.
+// Header of the CL ORDER ticket, allowing the usual misreads ("CL 0RDER", "Store l992").
+function isClHeader(line){
+  return /CL\s*[O0]RDER/i.test(line) || hasLabel(line, "cl order") || /st[o0]re\s*#?\s*[\dlI|]{3,}/i.test(line);
+}
+
+function extractBarcodeOrderId(lines, phoneDigits){
+  var i, j, m, h = -1;
+  for(i = 0; i < lines.length; i++){ if(isClHeader(lines[i])){ h = i; break; } }
+  if(h === -1) return "";
+  // the top of the ticket, plus the lines around the header in case Tesseract
+  // read that corner as its own block further down
+  var top = lines.slice(0, 12);
+  if(h >= 12) top = top.concat(lines.slice(Math.max(12, h - 3), h + 7));
+  var phoneLine = /\b(text|phone|tel|cell|mobile|e-?mail|emad|emaii)\b/i;
+  var own = String(phoneDigits || "").replace(/\D/g, "");
+  var best = "";
+  function offer(d, onPhoneLine){
+    if(d.length < 10 || d.length > 14) return;
+    if(onPhoneLine && d.length === 10) return;          // that's the phone itself
+    if(own && d === own) return;
+    if(d.length > best.length) best = d;                 // the real ID is 13 digits; prefer longer
+  }
+  // 1) a run of 10-14 digits standing alone, or 11-14 glued to a word (too long for
+  //    a phone). Never one inside an email address ("5550102233@vtext.com").
+  for(i = 0; i < top.length; i++){
+    var pl = phoneLine.test(top[i]), words = top[i].split(/\s+/);
+    for(j = 0; j < words.length; j++){
+      if(/@/.test(words[j])) continue;
+      var core = words[j].replace(/^[^0-9A-Za-z]+|[^0-9A-Za-z]+$/g, "");
+      if(/^\d{10,14}$/.test(core)){ offer(core, pl); continue; }
+      m = core.match(/(?:^|\D)(\d{11,14})(?!\d)/);
+      if(m) offer(m[1], pl);
+    }
+  }
+  if(best) return best;
+  // 2) a line that is only digit groups: the barcode number split by a space
+  for(i = 0; i < top.length; i++){
+    m = top[i].match(/^\W*(\d{3,}(?:\s+\d{3,}){1,3})\W*$/);
+    if(m) offer(m[1].replace(/\s+/g, ""), phoneLine.test(top[i]));
+  }
+  if(best) return best;
+  // 3) Tesseract swapped a few digits for look-alike letters ("1O4S25O72I992")
+  for(i = 0; i < top.length; i++){
+    var toks = top[i].split(/\s+/);
+    for(j = 0; j < toks.length; j++){
+      if(/@/.test(toks[j])) continue;
+      var t = toks[j].replace(/^[^A-Za-z0-9|]+|[^A-Za-z0-9|]+$/g, "");
+      if(t.length < 10 || t.length > 14 || /[^0-9OoQDIl|SBZ]/.test(t)) continue;
+      if((t.match(/\d/g) || []).length < Math.max(9, t.length - 4)) continue;
+      offer(t.replace(/[OoQD]/g, "0").replace(/[Il|]/g, "1").replace(/S/g, "5")
+        .replace(/B/g, "8").replace(/Z/g, "2"), phoneLine.test(top[i]));
+    }
+  }
+  return best;
+}
+
+// Right-column text Tesseract glues onto a left-column line: "JORDAN SAMPLE CL ORDER
+// Ticket", "JORDAN SAMPLE Doctor: DR. EXAMPLE". Cut the line at the first of these.
+var RIGHT_COL_RE = /(?:^|\s+)(?:CL\s*[O0]RDER\b|Ticket\b|St[o0]re\s*#?\s*[\dlI|]|Date\s*Rec|Received\b|Doctor\b|Dr\.?\s|Order\b|Tray\b|Page\s*\d|\d\s*of\s*\d)/i;
+function leftColumn(line){
+  var s = String(line == null ? "" : line), m = s.match(RIGHT_COL_RE);
+  return (m ? s.slice(0, m.index) : s).trim();
+}
+
+// A name on a staff/doctor line is never the patient ("Doctor: Tuan Tran",
+// "ispensin Assoc" on the real ticket), even when the name itself looks valid.
+var ROLE_CONTEXT_RE = /doctor|\bdr\.?\b|assoc|dispens/i;
+function nameFrom(line){
+  var cand = stripNamePrefix(leftColumn(line)).replace(/\s+/g, " ").trim();
+  if(!cand || ROLE_CONTEXT_RE.test(cand)) return "";
+  var test = cand.replace(/\s[A-Z]\.?(?=\s)/g, "");   // a middle initial ("JORDAN A SAMPLE") is fine
+  return (looksLikeName(test) && plausibleName(test)) ? cand : "";
+}
+
+var TEXT_LABEL_RE = /\bt[e3]xt\s*[:;]/i;
+// "Ship to Primary Address", also bent ("Sh1p to", "Primary Adress") or split over two lines.
+function isShipLabel(line){
+  return /\bsh[i1l|]p\s*t[o0]\b/i.test(line) || /pr[i1l|]mary\s*ad+r/i.test(line);
+}
+
+// Patient name = the line above the "Text:" label at top left (one more line up
+// when that line is only the "CL ORDER Ticket" header).
+function extractTopLeftPatient(lines){
+  for(var i = 0; i < Math.min(12, lines.length); i++){
+    if(TEXT_LABEL_RE.test(lines[i])){
+      if(i === 0) return "";
+      var n = nameFrom(lines[i - 1]);
+      if(!n && i >= 2 && !leftColumn(lines[i - 1])) n = nameFrom(lines[i - 2]);
+      return n;
+    }
+  }
+  return "";
+}
+
+// Fallback: the name under "Ship to Primary Address" (lower left).
+function extractShipToPatient(lines){
+  for(var i = 0; i < lines.length; i++){
+    if(isShipLabel(lines[i])){
+      var j = i + 1;
+      if(j < lines.length && isShipLabel(lines[j])) j++;   // label split over two lines
+      for(var k = j; k < Math.min(lines.length, j + 2); k++){
+        var cand = nameFrom(lines[k]);
+        if(cand) return cand;
+      }
+      return "";
+    }
+  }
+  return "";
+}
+
+function sameName(a, b){
+  var x = String(a).toUpperCase().replace(/[^A-Z\u00C0-\u024F ]/g, "").replace(/\s+/g, " ").trim();
+  var y = String(b).toUpperCase().replace(/[^A-Z\u00C0-\u024F ]/g, "").replace(/\s+/g, " ").trim();
+  if(!x || !y) return false;
+  if(x === y) return true;
+  return Math.min(x.length, y.length) >= 8 && levenshtein(x, y) <= 1;
+}
+
+// The name prints twice on the CL ORDER ticket (top left, and under Ship to
+// Primary Address). When both spots were printed, both must read the same —
+// marker scribble or a smudge in one spot means the other can't be trusted
+// either, so it becomes a one-tap hint instead of a filled field.
+function clOrderPatient(lines){
+  var tl = extractTopLeftPatient(lines), st = extractShipToPatient(lines);
+  var hasText = lines.some(function(l){ return TEXT_LABEL_RE.test(l); });
+  var hasShip = lines.some(function(l){ return isShipLabel(l); });
+  if(tl && st){
+    if(sameName(tl, st)) return {name: tl, hints: []};
+    return {name: "", hints: [tl, st], flag: "Name read two different ways \u2014 tap the right one or type it."};
+  }
+  // only one spot on the ticket at all: take it if it's clearly a name
+  if(tl && !hasShip && strongName(tl)) return {name: tl, hints: []};
+  if(st && !hasText && strongName(st)) return {name: st, hints: []};
+  if(tl || st) return {name: "", hints: [tl || st], flag: "Name only readable in one spot \u2014 tap it if it's right."};
+  return {name: "", hints: []};
+}
+
+// ---- dates ----
+
+// Purchase years this far back or later are misreads ("2O26" -> "20", "20Z6").
+function validYMD(y, m, d){
+  y = Number(y); m = Number(m); d = Number(d);
+  if(!(y >= 2021 && y <= 2099 && m >= 1 && m <= 12 && d >= 1)) return false;
+  return d <= new Date(y, m, 0).getDate();
+}
+function isoYMD(y, m, d){
+  y = String(y).length === 2 ? "20" + y : String(y);
+  return y + "-" + pad2(Number(m)) + "-" + pad2(Number(d));
+}
+// "08/17/20261of1": the page count glued onto the year.
+function dateLine(l){ return String(l).replace(/(\d)([1lI|]\s*[o0]\s*[fF]\s*[1lI|])/g, "$1 $2"); }
+
+// "10:54 AM, 08/17/2026" and the ways Tesseract bends it: "10.54AM,08/17/2026",
+// "10:54 AN 08|17/2026". The time anchors it, so a date elsewhere can't win.
+// A year must end cleanly: "20Z6" or "02b" is a misread, not "2020" / "2002".
+var TIMESTAMP_RE = /(\d{1,2})\s*[:.;]\s*(\d{2})\s*([AaPp])\.?\s*[MmNn]\.?\s*[,.;:]?\s*(\d{1,2})\s*[\/\-.|lI]\s*(\d{1,2})\s*[\/\-.|lI]\s*(\d{4}|\d{2})(?![\dA-Za-z])/g;
+// Lines whose dates are never the purchase date.
+var DATE_SKIP_RE = /\b(exp|expir\w*|rec'?d|receiv\w*|recv|due|promis\w*|dob|birth\w*|born|next|recall|eff\w*|print\w*)\b/i;
+var ASSOC_RE = /[A-Za-z]{2,}\s*\/\s*\d{3,}/;   // "DANIELA / 203142"
+function timestampDates(lines){
+  var out = [];
+  for(var i = 0; i < lines.length; i++){
+    var l = dateLine(lines[i]), m, assoc = ASSOC_RE.test(l);
+    if(!assoc && DATE_SKIP_RE.test(l)) continue;
+    TIMESTAMP_RE.lastIndex = 0;
+    while((m = TIMESTAMP_RE.exec(l))){
+      var y = m[6].length === 2 ? "20" + m[6] : m[6];
+      if(validYMD(y, m[4], m[5])) out.push({iso: isoYMD(y, m[4], m[5]), assoc: assoc});
+    }
+  }
+  return out;
+}
+
+// Purchase date = the associate timestamp at bottom left: "DANIELA / 203142, 10:54 AM, 08/17/2026".
+// The associate line wins; otherwise one distinct timestamp date; otherwise blank.
+function extractTimestampDate(lines){
+  var c = timestampDates(lines);
+  var uniq = function(arr){ var s = {}; return arr.filter(function(x){ return s[x.iso] ? false : (s[x.iso] = 1); }); };
+  var a = uniq(c.filter(function(x){ return x.assoc; }));
+  if(a.length) return a.length === 1 ? a[0].iso : "";
+  var u = uniq(c);
+  return u.length === 1 ? u[0].iso : "";
+}
+
+// No timestamp: any date that isn't an expiry / received / birth date, and only if
+// exactly one distinct date is left. Prescription rows (decimals) are skipped.
+function extractLooseDate(lines){
+  var seen = {}, found = [];
+  for(var i = 0; i < lines.length; i++){
+    var l = dateLine(lines[i]);
+    if(DATE_SKIP_RE.test(l) || eyeRow(l)) continue;
+    var re = /(^|[^\d.\-])(\d{1,2})\s*[\/\-.]\s*(\d{1,2})\s*[\/\-.]\s*(\d{4}|\d{2})(?![\dA-Za-z])/g, m;
+    while((m = re.exec(l))){
+      var y = m[4].length === 2 ? "20" + m[4] : m[4];
+      if(!validYMD(y, m[2], m[3])) continue;
+      var iso = isoYMD(y, m[2], m[3]);
+      if(!seen[iso]){ seen[iso] = 1; found.push(iso); }
+    }
+  }
+  return found.length === 1 ? found[0] : "";
+}
+
+// ---- CONTACT LENS ORDER INFORMATION table ----
+
+// Mark in the Annual Supply column. Only an explicit X or check counts; an
+// empty box reads as O, 0, o, D, [], a... and never counts. Bracket and
+// punctuation debris around it ("X]", "[X", "=X]", "X.") is ignored.
+var MARK_RE = /^(?:[xX]{1,2}|[\u2713\u2714\u2611\u2612\u2705\u25A0\u25AA\u2715\u2716\u2717\u2718\u00D7])$/;
+var DEBRIS_RE = /[\[\]\(\)\{\}=|:;.,'"`_\-]/g;
+function isMark(tok){ return MARK_RE.test(String(tok == null ? "" : tok).replace(DEBRIS_RE, "")); }
+
+// One order row after its OD/OS label (wrapped lines already joined on). Cells:
+// Pack Size, Qnty/Store Stock, Qnty/Order and the Annual Supply box. On the real
+// ticket the box sits between the numbers and a row can wrap ("OS(L) 6 = 8" /
+// "i [=] 0 4"), so the Qnty/Order is the LAST number of the row, never the Pack
+// Size (a 6 pk must not turn 4 boxes into 6), and a lone number is not used.
+function orderRowParse(rest){
+  var toks = String(rest == null ? "" : rest).trim().split(/\s+/).filter(Boolean);
+  // leftovers of a mangled row label ("(Lu)", "(rR)", ")") before the first cell
+  while(toks.length && !/\d/.test(toks[0]) && /^[\(\[{]?[A-Za-z]{0,3}[\)\]}]?$/.test(toks[0])) toks.shift();
+  var clean = function(x){ return x.replace(/^[,;:.'"`]+|[,;:.'"`]+$/g, ""); };
+  var nums = [], at = [], mark = false, i, m;
+  for(i = 0; i < toks.length; i++){
+    var t = clean(toks[i]);
+    if(/^\d{1,3}$/.test(t)){ nums.push(Number(t)); at.push(i); continue; }
+    m = t.match(/^(\d{1,3})([xX✓✔]{1,2})$/);   // "4X": number with the box mark glued on
+    if(m){ nums.push(Number(m[1])); at.push(i); mark = true; continue; }
+    if(isMark(t)) mark = true;                              // the box can sit anywhere in the row
+  }
+  var pack = "", qty = "", q;
+  if(nums.length >= 2){
+    if(isPack(nums[0])) pack = nums[0];
+    q = nums[nums.length - 1];
+    var a = nums[nums.length - 2];
+    // "1 2" could be a 12 split in two: with more numbers than the row has cells, don't pick
+    if(nums.length >= 4 && at[at.length - 1] === at[at.length - 2] + 1 && a >= 1 && a <= 9 && q <= 9) q = undefined;
+  } else if(nums.length === 1){
+    // one number alone: 27/30/90/180 can only be the pack size; any other
+    // non-pack number is the box count (as before); 2, 6, 12 or 24 could be
+    // either cell, so both stay blank
+    if(isPack(nums[0]) && nums[0] > 24) pack = nums[0];
+    else if(!isPack(nums[0])) q = nums[0];
+  }
+  if(q >= 1 && q <= 24) qty = String(q);
+  return {pack: pack, qty: qty, mark: mark, n: nums.length};
+}
+
+// Line index of the CONTACT LENS ORDER INFORMATION header: after the PRESCRIPTION
+// table when there is one, full phrase preferred (a title could also say "order").
+function orderHeaderIndex(lines){
+  var from = 0, i;
+  for(i = 0; i < lines.length; i++){ if(hasLabel(lines[i], "prescription")){ from = i + 1; break; } }
+  for(i = from; i < lines.length; i++){ if(hasLabel(lines[i], "contact lens order information")) return i; }
+  for(i = from; i < lines.length; i++){ if(hasLabel(lines[i], "contact lens order")) return i; }
+  return -1;
+}
+
+// Finds the order table and reads each eye's row. {found, od:{seen,pack,qty,mark}, os:{...}}
+// Under the header, a row can wrap onto a next line that is digits and marks with
+// almost no letters ("i [=] 0 4"); that line joins the row. Lines with words, a
+// 3+ digit run ("1200)") or the Shipping / Payment sections never do. Rows with
+// decimals are prescription rows. Without the header, only one-line rows that
+// clearly are order rows count: a real pack size first and at least one more number.
+function extractOrderTable(lines){
+  var start = orderHeaderIndex(lines), i;
+  var res = {found: start !== -1,
+    od: {seen: false, pack: "", qty: "", mark: false},
+    os: {seen: false, pack: "", qty: "", mark: false}};
+  var from = start === -1 ? 0 : start + 1;
+  var to = start === -1 ? lines.length : Math.min(lines.length, start + 14);
+  var rows = [], cur = null;
+  for(i = from; i < to; i++){
+    var l = lines[i];
+    if(start !== -1 && (isShipLabel(l) || /shipping|payment/i.test(l))) break;
+    var r = eyeRow(l);
+    if(r){
+      cur = null;
+      if(/\d[.,]\d/.test(r.rest)) continue;                  // Rx decimals: a prescription row
+      if(start === -1 && (/(^|\s)[\-+]\d/.test(r.rest) ||
+         /[A-Za-z]{3,}/.test(r.rest.replace(/\b[xX]{1,2}\s*$/, "")))) continue;
+      cur = {eye: r.eye, text: r.rest};
+      rows.push(cur);
+      continue;
+    }
+    if(start === -1 || !cur) continue;
+    var letters = (l.match(/[A-Za-z]/g) || []).length;
+    if(/\d/.test(l) && letters <= 2 && !/\d{3,}/.test(l) &&
+       !/^\s*(ship|dispense|payment|total|subtotal|tax)\b/i.test(l)) cur.text += " " + l;
+    else if(letters > 2) cur = null;                          // a line with words ends the row
+  }
+  for(i = 0; i < rows.length; i++){
+    var slot = rows[i].eye === "OD" ? res.od : res.os;
+    if(slot.seen) continue;
+    var p = orderRowParse(rows[i].text);
+    if(start === -1 && !(p.pack && p.n >= 2)) continue;
+    slot.seen = true; slot.pack = p.pack; slot.qty = p.qty; slot.mark = p.mark;
+    if(start === -1) res.found = true;
+  }
+  return res;
+}
+
+// Boxes per eye = the "Qnty/Order" column of the CONTACT LENS ORDER
+// INFORMATION table. Pack Size is lenses per box and Qnty/Store Stock is
+// store stock — neither is a box count. Returns null when the section is not found.
+function extractOrderBoxes(lines){
+  var t = extractOrderTable(lines);
+  if(!t.found) return null;
+  return {od: t.od.qty, os: t.os.qty};
+}
+
+// ---- lens: Collection column + pack size ----
+
+var LENS_STOP = ["for","with","pk","pack","the","and","of"];
+
+// Ticket shorthand and price-book names use different words for the same design:
+// Toric / Astig / Astigma / "for Astigmatism", and MF / Multi / Multifocal /
+// "for Presbyopia". Both sides are mapped onto one word before matching.
+function canonLensWord(w){
+  if(w === "ast" || w === "tor") return "toric";
+  if(w === "mf" || w === "mul" || w === "multi") return "multifocal";
+  if(w.length >= 4){
+    if(tokSimOCR(w, "astigmatism") >= 0.75 || tokSimOCR(w, "toric") >= 0.8) return "toric";
+    if(tokSimOCR(w, "multifocal") >= 0.75 || tokSimOCR(w, "presbyopia") >= 0.75) return "multifocal";
+  }
+  return w;
+}
+
+// The price book's own spelling of every word (before the Toric/Multifocal mapping).
+var RAW_VOCAB = (function(){
+  var s = {}, out = [];
+  PRICEBOOK.forEach(function(e){
+    norm(e[0]).split(" ").forEach(function(w){
+      if(w.length >= 2 && !/^\d+$/.test(w) && !s[w]){ s[w] = 1; out.push(w); }
+    });
+  });
+  return out;
+})();
+// OCR splits a digit off a name ("TOTAL 30", "DAILIES TOTAL 1", "PRECISION 7"):
+// glue it back when that spells a price-book word.
+function rejoinDigits(ws){
+  var out = [];
+  for(var i = 0; i < ws.length; i++){
+    var w = ws[i], nx = ws[i + 1];
+    if(nx && /^\d{1,2}$/.test(nx) && /[a-z]$/.test(w)){
+      var j = w + nx;
+      if(RAW_VOCAB.some(function(v){ return /\d$/.test(v) && tokSimOCR(j, v) >= 0.85; })){ out.push(j); i++; continue; }
+    }
+    out.push(w);
+  }
+  return out;
+}
+
+// Words that name a lens, in order (numbers and filler dropped; "+" is "plus";
+// the "2" in "Acuvue 2" is part of the name, not a pack size).
+function lensWords(s){
+  var seen = {}, out = [];
+  var t = String(s == null ? "" : s).replace(/\+/g, " plus ").replace(/\bacuvue\s+2(?![\d.])/i, "acuvue two");
+  rejoinDigits(norm(t).split(" ")).forEach(function(w){
+    if(w.length < 2 || /^\d+$/.test(w) || LENS_STOP.indexOf(w) !== -1) return;
+    w = canonLensWord(w);
+    if(seen[w]) return;
+    seen[w] = 1; out.push(w);
+  });
+  return out;
+}
+var LENS_WORDS = PRICEBOOK.map(function(e){ return lensWords(e[0]); });
+var LENS_VOCAB = (function(){
+  var s = {}, out = [];
+  LENS_WORDS.forEach(function(ws){ ws.forEach(function(w){ if(!s[w]){ s[w] = 1; out.push(w); } }); });
+  return out;
+})();
+var BRAND_WORDS = ["acuvue","oasys","optix","hydraglyde","avaira","vitality","biofinity","energys",
+  "biotrue","oneday","dailies","aquacomfort","total1","total30","infuse","misight","miru","myday",
+  "precision7","precison1","precision1","proclear","ultra","clariti"];
+
+// tokSim plus one more OCR case: a typo inside a truncated word ("astlgma" ~ "astigmatism").
+function tokSimOCR(a, b){
+  var s = tokSim(a, b);
+  if(s) return s;
+  var la = a.length, lb = b.length;
+  if(Math.min(la, lb) >= 5){
+    var sh = la < lb ? a : b, lo = la < lb ? b : a;
+    if(levenshtein(sh, lo.slice(0, sh.length)) <= 1) return 0.75;
+  }
+  return 0;
+}
+// Words of 3 letters or fewer must match exactly: on the real ticket a fuzzy
+// "day" ~ "Date" (from the Date Mailed column) crowned a daily Oasys.
+function bestSim(w, list){
+  var best = 0;
+  for(var i = 0; i < list.length; i++){
+    var s = (w.length <= 3 || list[i].length <= 3) ? (w === list[i] ? 1 : 0) : tokSimOCR(w, list[i]);
+    if(s > best){ best = s; if(best === 1) break; }
+  }
+  return best >= 0.6 ? best : 0;
+}
+function hasLensWord(s){
+  if(/up\s*&\s*up/i.test(s)) return true;
+  return lensWords(s).some(function(w){
+    for(var i = 0; i < BRAND_WORDS.length; i++){ if(tokSimOCR(w, BRAND_WORDS[i]) >= 0.8) return true; }
+    return false;
+  });
+}
+// The lens words in the text that the price book knows (junk and color codes dropped).
+function relevantLensWords(text){
+  return lensWords(text).filter(function(w){ return bestSim(w, LENS_VOCAB) > 0; });
+}
+
+// The Rx table's own headers and labels: never part of a lens name.
+var RX_LABEL_RE = /\b(sphere|sph|cyl|cylinder|axis|bc|dia|diam|diameter|color|colour|date|mailed|eye|collection|power|prism|base|curve|rx)\b|\badd\s*:/gi;
+
+// The "Sphere Cyl Axis" header row of the prescription table.
+function rxHeaderIndex(lines){
+  for(var i = 0; i < lines.length; i++){
+    if(/sph/i.test(lines[i]) && /cyl/i.test(lines[i]) && /ax/i.test(lines[i])) return i;
+  }
+  return -1;
+}
+
+// The Collection cell of one eye row as printed: the words before the first Rx
+// number ("MiSight 1 day" and "TOTAL 30" keep their numbers).
+function collectionCell(body){
+  var out = [], toks = String(body).trim().split(/\s+/);
+  for(var k = 0; k < toks.length; k++){
+    var tk = toks[k];
+    if(/^[+\-]\d/.test(tk) || /\d[.,]\d/.test(tk) || /^\d{3,}$/.test(tk)) break;
+    if(/^\d{1,2}$/.test(tk)){
+      var prev = out.length ? out[out.length - 1].toLowerCase() : "";
+      var glue = /[a-z]$/.test(prev) && rejoinDigits([prev, tk]).length === 1;
+      if(!glue && !/^[A-Za-z]/.test(toks[k + 1] || "")) break;
+    }
+    out.push(tk);
+  }
+  return out.join(" ");
+}
+
+// The lens name as the ticket printed it, rebuilt from the table text for the
+// cut-off check: the lens words of the first eye in order, plus a short tail
+// right after them ("1-Day Acuvue Moist M"). Other columns' words don't count.
+function printedLensName(text){
+  var toks = String(text).split(/\s+/).filter(Boolean), out = [], firstRaw = "", i;
+  var isLensTok = function(t){ return relevantLensWords(t).length > 0; };
+  for(i = 0; i < toks.length; i++){
+    if(!isLensTok(toks[i])) continue;
+    var low = toks[i].toLowerCase();
+    if(!firstRaw) firstRaw = low;
+    else if(low === firstRaw) break;                         // the other eye's copy starts
+    out.push(toks[i]);
+    var nx = toks[i + 1] || "";
+    if(/^\d{1,2}$/.test(nx) && rejoinDigits([low, nx]).length === 1){ out.push(nx); i++; nx = toks[i + 1] || ""; }  // "TOTAL 30"
+    if(/^[A-Za-z]{1,3}$/.test(nx) && !isLensTok(nx) && !isLensTok(toks[i + 2] || "")) { out.push(nx); break; }
+  }
+  return out.join(" ");
+}
+
+// Collection text. On the real ticket Tesseract splits the Collection cell over
+// several lines ("Acuvue" / "Oasys" / "Astigma") and mixes in other columns (color
+// codes like "VISI", "Date Mailed"), so the lens words come from the whole Rx
+// table region: from the "Sphere Cyl Axis" header (or the PRESCRIPTION title,
+// which OCR also bends into "PRESGRIPTION") to the "Add:" line / CONTACT LENS
+// ORDER section, labels dropped; the matcher ignores words the price book doesn't
+// know. Also returns each eye row's own cell (to spot two different lenses) and
+// the name as printed (to tell whether it was cut off).
+function extractCollection(lines){
+  var h = rxHeaderIndex(lines), p = -1, i;
+  for(i = 0; i < lines.length; i++){ if(hasLabel(lines[i], "prescription")){ p = i; break; } }
+  var start = h !== -1 ? h : p;
+  var oh = orderHeaderIndex(lines), end = lines.length;
+  if(start !== -1){
+    for(i = start + 1; i < lines.length; i++){
+      if(/^\s*add\s*:?\s*$/i.test(lines[i]) || i === oh || hasLabel(lines[i], "contact lens order")){ end = i; break; }
+    }
+  }
+  var odCells = [], osCells = [], bag = [];
+  for(i = start === -1 ? 0 : start; i < end; i++){
+    var line = lines[i].replace(/\+/g, " plus ").replace(/\bacuvue\s+2(?![\d.])/i, "Acuvue two");
+    var r = eyeRow(line);
+    if(start === -1 && (!r || !hasLensWord(r.rest))) continue;   // no table found: eye rows that name a lens
+    var body = r ? r.rest : line;
+    if(r){
+      var cell = collectionCell(body);
+      if(/[A-Za-z]{2,}/.test(cell)) (r.eye === "OD" ? odCells : osCells).push(cell);
+    }
+    bag.push(body.replace(RX_LABEL_RE, " "));
+  }
+  var text = bag.join(" ").replace(/\s+/g, " ").trim();
+  if(!relevantLensWords(text).length) text = "";
+  return {text: text, od: odCells.join(" "), os: osCells.join(" "),
+          odCell: odCells[0] || "", osCell: osCells[0] || "", printed: text ? printedLensName(text) : ""};
+}
+
+// Lens = the Collection column of the PRESCRIPTION table, read off the
+// OD(R)/OS(L) rows with the Rx numbers stripped (letters only).
+function extractCollectionText(lines){
+  var c = extractCollection(lines);
+  return c.text.split(" ").map(function(w){ return w.replace(/[^A-Za-z]/g, ""); })
+    .filter(function(w){ return w.length >= 2 && !/^(OD|OS|R|L)$/i.test(w); }).join(" ");
+}
+
+// Rank price-book lenses for Collection text. E = how much of the lens name the
+// text covers, T = how much of the text the name covers; score balances the two,
+// so "Acuvue Oasys Astigma" beats both "Acuvue Oasys 1-Day for Astigmatism" (extra
+// words) and "Acuvue 2" (too few). pack (the ticket's Pack Size) limits the field:
+// only the 2-week Oasys for Astigmatism comes in a 6 pk.
+function rankLensesScoped(text, pack){
+  var words = relevantLensWords(text);
+  if(!words.length) return [];
+  var packN = Number(pack) || 0;
+  var usePack = packN && PRICEBOOK.some(function(e){ return e[3] === packN; });
+  var out = [];
+  for(var i = 0; i < PRICEBOOK.length; i++){
+    if(usePack && PRICEBOOK[i][3] !== packN) continue;
+    var ew = LENS_WORDS[i], E = 0, T = 0, j;
+    if(!ew.length) continue;
+    for(j = 0; j < ew.length; j++) E += bestSim(ew[j], words);
+    for(j = 0; j < words.length; j++) T += bestSim(words[j], ew);
+    E /= ew.length; T /= words.length;
+    var score = (E + T) > 0 ? 2 * E * T / (E + T) : 0;
+    if(score > 0) out.push({idx: i, score: score, E: E, T: T});
+  }
+  out.sort(function(a, b){ return (b.score - a.score) || (a.idx - b.idx); });
+  return out;
+}
+
+// Was the name cut off? On the one real ticket seen so far the Collection cell
+// reads "Acuvue Oasys Astigma": exactly 20 characters, cut mid-word. So a name at
+// about that width, or one ending in a partial word, may be missing words at the
+// end ("Biofinity Multifocal" could be "Biofinity Multifocal Toric"). A name well
+// past 20 characters shows that ticket's column is wider, so it counts as whole.
+// Tune COLLECTION_WIDTH if real tickets show a different width.
+var COLLECTION_WIDTH = 20;
+function maybeCut(text){
+  var t = String(text == null ? "" : text)
+    .replace(/\(\s*\d+\s*\)|\b\d+\s*-?\s*(pk|pack)\b/gi, " ").replace(/\s+/g, " ").trim();
+  if(t.length >= COLLECTION_WIDTH - 2 && t.length <= COLLECTION_WIDTH + 1) return true;
+  var ws = rejoinDigits(norm(t).split(" ")).filter(function(w){ return w.length >= 2 && !/^\d+$/.test(w); });
+  if(!ws.length) return false;
+  var last = ws[ws.length - 1];
+  if(RAW_VOCAB.indexOf(last) !== -1) return false;
+  return RAW_VOCAB.some(function(v){
+    return v.length > last.length + 1 && last.length >= 2 &&
+      (v.indexOf(last) === 0 || (last.length >= 4 && levenshtein(last, v.slice(0, last.length)) <= 1));
+  });
+}
+// Does this lens name carry on past the text's last word (words a cut could hide)?
+function extendsPast(ew, words){
+  if(!words.length) return false;
+  var pos = -1;
+  for(var i = 0; i < words.length; i++){
+    var bj = -1, bs = 0;
+    for(var j = 0; j < ew.length; j++){
+      var s = tokSimOCR(words[i], ew[j]);
+      if(s > bs){ bs = s; bj = j; }
+    }
+    if(bs < 0.75) return false;       // the text has a word this lens doesn't
+    pos = bj;
+  }
+  return pos < ew.length - 1;
+}
+
+var LENS_AUTO = 0.75, LENS_MARGIN = 0.08, LENS_COVER = 0.85;
+// {lens, suggest, packMismatch, cutOff}. Auto-selects only a strong, clear winner
+// that the ticket fully names — never a guess.
+// cut: whether the name may be cut off (worked out from the text when not given).
+function matchLens(text, pack, cut){
+  var r = rankLensesScoped(text, pack);
+  var sug = function(list){ return list.slice(0, 3).map(function(x){ return lensObj(x.idx); }); };
+  if(pack && (!r.length || r[0].score < LENS_AUTO - 1e-9)){
+    var loose = rankLensesScoped(text, 0);
+    if(loose.length && loose[0].score >= LENS_AUTO - 1e-9){
+      return {lens: null, suggest: sug(loose), packMismatch: true, cutOff: false};
+    }
+    if(!r.length) r = loose;
+  }
+  var res = {lens: null, suggest: sug(r), packMismatch: false, cutOff: false};
+  if(!r.length) return res;
+  var b = r[0];
+  // The ticket must name the lens: cover (nearly) all of its name, or be the only
+  // lens in the field that holds every word on the ticket ("Oasys Astigma" in a
+  // 90 pk can only be the 1-Day). "Air Optix" alone fits five lenses: no pick.
+  var holdsAll = r.filter(function(x){ return x.T >= LENS_COVER - 1e-9; });
+  var named = b.E >= LENS_COVER - 1e-9 || (b.T >= LENS_COVER - 1e-9 && holdsAll.length === 1);
+  if(b.score < LENS_AUTO - 1e-9 || !named) return res;
+  if(r.length > 1 && (b.score - r[1].score) < LENS_MARGIN - 1e-9) return res;
+  if(cut === undefined) cut = maybeCut(text);
+  if(cut){
+    var words = relevantLensWords(text);
+    var ext = r.filter(function(x){ return x.idx !== b.idx && extendsPast(LENS_WORDS[x.idx], words); });
+    if(ext.length){
+      res.cutOff = true;
+      res.suggest = sug([b].concat(ext));
+      return res;
+    }
+  }
+  res.lens = lensObj(b.idx);
+  return res;
+}
+
+// The Pack Size cell (per eye). Split packs (different per eye) -> blank.
+function ticketPack(order, lines){
+  var a = order.od.pack, b = order.os.pack;
+  if(a && b && a !== b) return {pack: "", split: true};
+  if(a || b) return {pack: a || b, split: false};
+  for(var i = 0; i < lines.length; i++){
+    var m = lines[i].match(/pack\s*size\s*[:#]?\s*(\d{1,3})\b/i) ||
+            lines[i].match(/\b(\d{1,3})\s*-?\s*(?:pk|pack)\b/i);
+    if(m && isPack(m[1])) return {pack: Number(m[1]), split: false};
+  }
+  return {pack: "", split: false};
+}
+
+// The "Annual Supply" checkbox: checked means the ticket is an annual supply
+// even before the box math runs. Only an explicit X / check counts, and on the
+// CL ORDER ticket every eye row with a box count must carry it.
+function extractAnnualChecked(lines){
+  var start = orderHeaderIndex(lines), i;
+  if(start !== -1){
+    for(i = start; i < Math.min(lines.length, start + 14); i++){
+      var l = lines[i];
+      if(/annual supply/i.test(l)){
+        if(/[\u25A0\u2611\u2713\u2714\u2715\u2717\u00D7\u25AA]|(\[|\()\s*[xX\u2713]\s*(\]|\))|\bchecked\b/i.test(l)) return true;
+      }
+    }
+  }
+  var t = extractOrderTable(lines);
+  if(!t.found) return false;
+  var rows = [t.od, t.os].filter(function(r){ return r.seen; });
+  var need = rows.filter(function(r){ return r.qty; });
+  if(!need.length) need = rows;
+  return need.length > 0 && need.every(function(r){ return r.mark; });
+}
+
+// Heuristic parse of OCR text. Always reviewable — never trusted blindly.
+// When in doubt a field is left blank for manual entry.
+function parseTicket(text){
+  var lines = String(text || "").split("\n").map(function(l){ return l.trim(); }).filter(Boolean);
+  var out = {patient:"", orderId:"", date:"", boxesOD:"", boxesOS:"", phone:"",
+             email:"", annualChecked:false, lens:null, lensSuggest:[],
+             pack:"", patientHints:[], flags:[]};
+  var i, m, l, j;
+  var isClOrder = lines.some(function(x){
+    return isClHeader(x) || TEXT_LABEL_RE.test(x) || isShipLabel(x) ||
+      hasLabel(x, "contact lens order");
+  });
+
+  // purchase date: associate timestamp first, then a lone unlabeled date
+  out.date = extractTimestampDate(lines) || extractLooseDate(lines);
+
+  out.phone = extractPhone(lines);
+  out.email = extractEmail(lines);
+  var phoneDigits = out.phone.replace(/\D/g, "");
+
+  // boxes: the Qnty/Order column when the order table is there (an unreadable cell
+  // stays blank - never re-read from the row by a looser rule, which used to pick
+  // up the Pack Size); generic OD/OS labels only on other tickets
+  var ot = extractOrderTable(lines);
+  if(ot.found){
+    out.boxesOD = ot.od.qty;
+    out.boxesOS = ot.os.qty;
+  } else {
+    var bx = extractBoxes(lines);
+    out.boxesOD = bx.od;
+    out.boxesOS = bx.os;
+  }
+
+  // patient: labeled line first, must look like a person name
+  for(i = 0; i < lines.length; i++){
+    m = lines[i].match(/^(?:patient|guest|customer|sold\s+to|name)\s*[:#\-]?\s*(.+)$/i);
+    if(m && !ROLE_CONTEXT_RE.test(lines[i])){
+      var cand = stripNamePrefix(m[1]);
+      if(looksLikeName(cand)){ out.patient = cand; break; }
+    }
+  }
+  if(!out.patient && isClOrder){
+    // CL ORDER layout: top left above "Text:", checked against Ship to Primary Address
+    var cp = clOrderPatient(lines);
+    out.patient = cp.name;
+    out.patientHints = cp.hints;
+    if(cp.flag) out.flags.push(cp.flag);
+  } else if(!out.patient){
+    // other tickets: first name-looking line near the top. Title case only —
+    // headers are usually ALL CAPS — and never store-ish words.
+    var extra = ["optical","target","vision","care","clinic","center","receipt"];
+    for(i = 0; i < Math.min(6, lines.length); i++){
+      l = lines[i];
+      if(!/[a-z]/.test(l)) continue;
+      var words = l.toLowerCase().split(/[^a-z]+/).filter(Boolean);
+      var bad = false;
+      for(j = 0; j < words.length; j++){
+        if(extra.indexOf(words[j]) !== -1){ bad = true; break; }
+      }
+      if(bad) continue;
+      var candL = stripNamePrefix(l);
+      if(looksLikeName(candL) && !ROLE_CONTEXT_RE.test(l)){ out.patient = candL; break; }
+    }
+  }
+
+  // order id: barcode digit run first (never a phone number). On the CL ORDER
+  // ticket that's the only source: the looser fallbacks below read zip codes,
+  // associate numbers and "1 of 1" as IDs, and a junk ID breaks duplicate checks.
+  out.orderId = extractBarcodeOrderId(lines, phoneDigits);
+  if(!out.orderId && !isClOrder){
+    // labeled lines (skip date lines), token must validate
+    for(i = 0; i < lines.length && !out.orderId; i++){
+      l = lines[i];
+      if(/\bdate\b/i.test(l)) continue;
+      m = l.match(/(?:\border\b|\bticket\b|\binvoice\b|\breceipt\b|\bconfirmation\b|\btransaction\b|\breference\b)\s*(?:#|no\.?|number)?\s*[:#\-]?\s*([A-Za-z0-9][A-Za-z0-9\-]{3,})/i);
+      if(m){
+        var ok = orderIdFromToken(m[1]);
+        if(ok) out.orderId = ok;
+      }
+    }
+  }
+  // fallback: any token shaped like an order code. Must contain a letter —
+  // a bare digit run might be the phone number.
+  if(!out.orderId && !isClOrder){
+    outer:
+    for(i = 0; i < lines.length; i++){
+      var toks = lines[i].split(/\s+/);
+      for(j = 0; j < toks.length; j++){
+        var t = orderIdFromToken(toks[j]);
+        if(t && /[A-Z]/.test(t)){
+          if(phoneDigits && t.replace(/\D/g, "") === phoneDigits) continue;
+          out.orderId = t;
+          break outer;
+        }
+      }
+    }
+  }
+
+  // every CL ORDER number seen so far is 13 digits; a dropped or doubled digit
+  // would break the duplicate check, so say so (the field stays filled)
+  if(out.orderId && isClOrder && /^\d+$/.test(out.orderId) && out.orderId.length !== 13){
+    out.flags.push("Ticket number read as " + out.orderId.length + " digits (usually 13) \u2014 check it against the ticket.");
+  }
+
+  // lens: Collection column + Pack Size (authoritative); lens-name lines as fallback
+  var pk = ticketPack(ot, lines);
+  out.pack = pk.pack;
+  if(pk.split) out.flags.push("Right and left eye have different pack sizes \u2014 check the lens.");
+  var coll = extractCollection(lines);
+  var lensText = coll.text;
+  if(!lensText){
+    lensText = lines.filter(function(x){ return hasLensWord(x); }).join(" ");
+  }
+  if(lensText){
+    // per eye: the Collection column cuts long names at about 20 characters
+    var cut = coll.text ? (maybeCut(coll.printed) || maybeCut(coll.odCell) || maybeCut(coll.osCell))
+                        : maybeCut(relevantLensWords(lensText).join(" "));
+    var mr = matchLens(lensText, out.pack, cut);
+    out.lens = mr.lens;
+    out.lensSuggest = mr.suggest;
+    if(mr.cutOff) out.flags.push("Lens name looks cut off on the ticket \u2014 tap the right one below.");
+    if(mr.packMismatch) out.flags.push("Pack size on the ticket (" + out.pack + " pk) doesn't fit the lens name \u2014 pick the lens by hand.");
+    if(coll.od && coll.os){
+      // split script: each eye names a different lens -> nothing auto-picked
+      var mo = matchLens(coll.od, out.pack), ms = matchLens(coll.os, out.pack);
+      if(mo.lens && ms.lens && mo.lens.idx !== ms.lens.idx){
+        out.lens = null;
+        out.lensSuggest = [mo.lens, ms.lens];
+        out.flags.push("Right and left eye show different lenses \u2014 check the lens.");
+      }
+    }
+  } else if(!isClOrder){
+    out.lens = findLens(text);
+    out.lensSuggest = suggestLenses(text, 3);
+  }
+
+  out.annualChecked = extractAnnualChecked(lines);
+  return out;
+}
+</script>
+<script>
+/* ============================================================
+   CLNO app wiring — DOM, storage, OCR, review, export.
+   ============================================================ */
+(function(){
+"use strict";
+var LS_KEY = "clno.v1";
+var ANNUAL_MSG = "Annual supply \u2014 goes through Customer Connect, not CLNO";
+var DUP_MSG = "already in tracker.";
+
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+
+/* ---------- storage ---------- */
+function loadState(){
+  try{
+    var s = JSON.parse(localStorage.getItem(LS_KEY) || "null");
+    if(s && Array.isArray(s.rows)) return s;
+  }catch(e){}
+  return {rows: []};
+}
+function saveState(s){ localStorage.setItem(LS_KEY, JSON.stringify(s)); }
+var state = loadState();
+function monthKey(iso){ return String(iso).slice(0, 7); } // "2027-03"
+
+/* ---------- online badge ---------- */
+function netBadge(){
+  var b = $("netBadge");
+  var on = navigator.onLine;
+  b.textContent = on ? "Online" : "Offline";
+  b.className = "net " + (on ? "on" : "off");
+}
+window.addEventListener("online", netBadge);
+window.addEventListener("offline", netBadge);
+netBadge();
+
+/* ---------- tabs ---------- */
+var tabs = document.querySelectorAll("nav.tabs button");
+function showTab(name){
+  tabs.forEach(function(b){ b.classList.toggle("active", b.dataset.tab === name); });
+  document.querySelectorAll(".screen").forEach(function(s){
+    s.classList.toggle("active", s.id === "screen-" + name);
+  });
+  if(name === "tracker") renderTracker();
+  if(name === "export") renderExport();
+  window.scrollTo(0, 0);
+}
+tabs.forEach(function(b){ b.addEventListener("click", function(){ showTab(b.dataset.tab); }); });
+
+/* ---------- lens dropdown ---------- */
+var lensSel = $("fLens");
+PRICEBOOK.forEach(function(e, i){
+  var o = document.createElement("option");
+  o.value = i;
+  o.textContent = e[0] + " \u2014 " + e[2] + " " + e[3] + "pk";
+  lensSel.appendChild(o);
+});
+
+/* ---------- review form ---------- */
+var reviewLens = null;   // matched lens object or null
+var reviewLensManual = false;
+var reviewAnnualChecked = false; // annual-supply checkbox seen on the ticket
+var editingKey = null;           // tracker row being edited; it stays saved until the edit is accepted
+
+function currentLens(){
+  var idx = parseInt(lensSel.value, 10);
+  if(isNaN(idx)) return null;
+  var e = PRICEBOOK[idx];
+  return {name:e[0], type:e[1], modality:e[2], pack:e[3], boxes12mo:e[4]};
+}
+
+function boxesTotal(){
+  var od = parseInt($("fOD").value, 10) || 0;
+  var os = parseInt($("fOS").value, 10) || 0;
+  return od + os;
+}
+var BOTH_EYES_MSG = "Enter boxes for both eyes (0 if that eye wasn't ordered).";
+function eyeBlank(){ return $("fOD").value.trim() === "" || $("fOS").value.trim() === ""; }
+
+// The ticket's Annual Supply box read as checked. The reader can misread a box,
+// and this is the one thing on the review screen you can't just retype, so it
+// comes with a way to clear it.
+function annualBoxHTML(){
+  return '<div class="warn">' + esc(ANNUAL_MSG) + "</div>" +
+    '<p class="hint">Flagged because the Annual Supply box on the ticket looks checked. ' +
+    '<button type="button" class="linkbtn" id="btnClearAnnual">Box isn\u2019t checked? Clear this</button></p>';
+}
+
+function refreshCalc(){
+  var lens = currentLens();
+  var total = boxesTotal();
+  var monthsEl = $("calcMonths"), subEl = $("calcReorder"), alerts = $("reviewAlerts");
+  alerts.innerHTML = reviewAnnualChecked ? annualBoxHTML() : "";
+  if(!lens || total <= 0){
+    monthsEl.textContent = "\u2014";
+    subEl.textContent = total <= 0 ? "Enter boxes per eye." : "Pick a lens.";
+    return;
+  }
+  var months = monthsSupply(total, lens.boxes12mo);
+  var mRound = Math.round(months * 10) / 10;
+  var date = $("fDate").value;
+  if(isAnnualSupply(months)){
+    alerts.innerHTML = '<div class="warn">' + esc(ANNUAL_MSG) + "</div>";
+    monthsEl.textContent = mRound + "-month supply \u2014 annual";
+    subEl.textContent = "Not entered in CLNO.";
+  } else if(reviewAnnualChecked){
+    monthsEl.textContent = mRound + "-month supply by box count";
+    subEl.textContent = "Annual Supply box checked \u2014 not entered in CLNO.";
+  } else if(eyeBlank()){
+    // one eye alone makes an annual 4+4 look like 6 months: no number until both are in
+    monthsEl.textContent = "\u2014";
+    subEl.textContent = BOTH_EYES_MSG;
+  } else {
+    monthsEl.textContent = mRound + "-month supply";
+    subEl.textContent = date
+      ? "CLNO contact: " + fmtMonthYear(reorderDateISO(date, months)) + " \u00b7 " + total + " boxes total"
+      : "Pick a purchase date to see the reorder month. \u00b7 " + total + " boxes total";
+  }
+}
+
+["fOD","fOS","fDate"].forEach(function(id){
+  $(id).addEventListener("input", refreshCalc);
+});
+["fPatient","fEmail","fOD","fOS","fDate"].forEach(function(id){
+  $(id).addEventListener("input", renderScanNotes);
+});
+$("reviewAlerts").addEventListener("click", function(e){
+  if(e.target && e.target.id === "btnClearAnnual"){
+    reviewAnnualChecked = false;
+    refreshCalc();
+  }
+});
+lensSel.addEventListener("change", function(){
+  reviewLensManual = true;
+  $("lensWarn").style.display = "none";
+  $("lensSuggest").style.display = "none";
+  $("lensSuggest").innerHTML = "";
+  refreshCalc();
+  renderScanNotes();
+});
+
+// What the scan couldn't fill, plus the parser's own flags. Nothing is guessed,
+// so the blanks are listed where they can't be missed (a blank OS box count
+// quietly halves the supply). Kept current as the fields get filled in.
+var lastScan = null;   // {p, raw} of the scan on the review screen
+function renderScanNotes(){
+  var box = $("scanNotes");
+  if(!lastScan || !lastScan.raw){ box.innerHTML = ""; return; }
+  var hasName = !!$("fPatient").value.trim(), hasLens = !!currentLens(), date = $("fDate").value;
+  var miss = [];
+  if(!hasName) miss.push("patient name");
+  if(!$("fEmail").value.trim()) miss.push("email");
+  if(!date) miss.push("purchase date");
+  if(!hasLens) miss.push("lens");
+  if(!$("fOD").value.trim()) miss.push("OD boxes");
+  if(!$("fOS").value.trim()) miss.push("OS boxes");
+  var h = "";
+  if(miss.length){
+    h += "<p>Not found on the ticket: " + esc(miss.join(", ")) + ". Nothing was guessed \u2014 fill in what's missing.</p>";
+  }
+  (lastScan.p.flags || []).forEach(function(f){
+    if(hasName && /^Name/.test(f)) return;
+    if(hasLens && /lens/i.test(f)) return;
+    h += "<p>" + esc(f) + "</p>";
+  });
+  if(date){
+    var days = (dateObj(date) - new Date(new Date().toDateString())) / 864e5;
+    if(days > 1) h += "<p>Check the purchase date \u2014 it's in the future.</p>";
+    else if(days < -400) h += "<p>Check the purchase date \u2014 it's more than a year old.</p>";
+  }
+  box.innerHTML = h ? '<div class="note">' + h + "</div>" : "";
+}
+
+// One-tap name buttons when the name wasn't trusted enough to fill in.
+function renderNameHints(hints){
+  var box = $("nameHints");
+  box.innerHTML = "";
+  box.style.display = "none";
+  if(!hints || !hints.length) return;
+  var h = '<div class="hint" style="margin:8px 0 4px">On the ticket:</div>';
+  hints.forEach(function(n){
+    h += '<button type="button" class="btn ghost small" data-name="' + esc(n) + '">' + esc(n) + "</button>";
+  });
+  box.innerHTML = h;
+  box.style.display = "block";
+  box.querySelectorAll("button").forEach(function(b){
+    b.addEventListener("click", function(){
+      $("fPatient").value = b.getAttribute("data-name");
+      box.style.display = "none";
+      box.innerHTML = "";
+      renderScanNotes();
+    });
+  });
+}
+
+function fillReview(p, rawText){
+  $("fPatient").value = p.patient || "";
+  $("fOrder").value = p.orderId || "";
+  $("fDate").value = p.date || "";
+  $("fOD").value = p.boxesOD || "";
+  $("fOS").value = p.boxesOS || "";
+  $("fPhone").value = p.phone || "";
+  $("fEmail").value = p.email || "";
+  $("emailHint").style.display = (rawText && p.email) ? "block" : "none";
+  $("fNotes").value = "";
+  reviewLensManual = false;
+  reviewAnnualChecked = !!(p && p.annualChecked);
+  lastScan = {p: p, raw: rawText};
+  renderNameHints(p.patientHints);
+  var packHint = $("lensPackHint");
+  if(rawText && p.pack){
+    packHint.textContent = "Pack size on the ticket: " + p.pack + " pk.";
+    packHint.style.display = "block";
+  } else {
+    packHint.textContent = "";
+    packHint.style.display = "none";
+  }
+  // parseTicket already matched the lens (Collection + Pack Size when the
+  // ticket layout was found); fall back to whole-text matching for manual fills.
+  var lens = (p && p.lens !== undefined) ? p.lens : findLens(rawText || "");
+  var warn = $("lensWarn");
+  var sg = $("lensSuggest");
+  sg.innerHTML = "";
+  sg.style.display = "none";
+  if(lens){
+    lensSel.value = String(lens.idx);
+    warn.style.display = "none";
+  } else if(rawText){
+    lensSel.selectedIndex = -1;
+    warn.style.display = "block";
+    warn.textContent = (p && p.lensSuggest && p.lensSuggest.length)
+      ? "Lens not certain \u2014 tap the right one below or pick it manually. Nothing was guessed."
+      : "Lens not found in the price book \u2014 pick it manually below. Nothing was guessed.";
+    // Only the parser's pack-aware suggestions: whole-ticket text is full of
+    // stray numbers that used to push daily lenses to the top.
+    var sugs = (p && p.lensSuggest) ? p.lensSuggest : suggestLenses(rawText, 3);
+    if(sugs.length){
+      var h = '<div class="hint" style="margin:8px 0 4px">Did you mean:</div>';
+      sugs.forEach(function(s){
+        h += '<button type="button" class="btn ghost small" data-li="' + s.idx + '">' +
+          esc(s.name) + " \u2014 " + esc(s.modality) + " " + s.pack + "pk</button>";
+      });
+      sg.innerHTML = h;
+      sg.style.display = "block";
+      sg.querySelectorAll("button").forEach(function(b){
+        b.addEventListener("click", function(){
+          lensSel.value = b.getAttribute("data-li");
+          reviewLensManual = true;
+          warn.style.display = "none";
+          sg.style.display = "none";
+          sg.innerHTML = "";
+          refreshCalc();
+          renderScanNotes();
+        });
+      });
+    }
+  } else {
+    lensSel.selectedIndex = -1;
+    warn.style.display = "none";
+  }
+  if(rawText){
+    $("rawWrap").style.display = "block";
+    $("rawText").textContent = rawText;
+  } else {
+    $("rawWrap").style.display = "none";
+  }
+  refreshCalc();
+  renderScanNotes();
+  $("revBadge").textContent = "\u2022";
+  showTab("review");
+}
+
+/* ---------- OCR ---------- */
+function setOcr(msg, pct){
+  $("ocrStatus").textContent = msg || "";
+  var bar = $("ocrProg");
+  if(pct == null){ bar.style.display = "none"; return; }
+  bar.style.display = "block";
+  bar.firstElementChild.style.width = Math.round(pct * 100) + "%";
+}
+
+// A scan result replaces the review form, so it ends any half-done edit (the
+// edited row stays in the tracker as it was). Cleared only when the result lands,
+// so an edit accepted while the reader is still working still replaces its row.
+function showScan(p, rawText){
+  editingKey = null;
+  fillReview(p, rawText);
+}
+
+function handleFile(file){
+  if(!file) return;
+  if(typeof Tesseract === "undefined"){
+    setOcr("Reader not loaded (needs internet once). Use manual entry.");
+    showScan({patient:"", orderId:"", date:"", boxesOD:"", boxesOS:"", phone:""}, "");
+    return;
+  }
+  setOcr("Reading ticket\u2026 (first scan needs internet)", 0);
+  Tesseract.recognize(file, "eng", {
+    logger: function(m){
+      if(m.status === "recognizing text") setOcr("Reading ticket\u2026 " + Math.round(m.progress * 100) + "%", m.progress);
+      else if(m.status) setOcr("Reading ticket\u2026 " + m.status, 0.05);
+    }
+  }).then(function(res){
+    setOcr("", null);
+    var text = (res && res.data && res.data.text) || "";
+    if(!text.trim()){
+      setOcr("Could not read anything \u2014 fill it in manually.");
+      showScan({patient:"", orderId:"", date:"", boxesOD:"", boxesOS:"", phone:""}, "");
+      return;
+    }
+    var p = parseTicket(text);
+    showScan(p, text);
+  }).catch(function(){
+    setOcr("Scan failed \u2014 fill it in manually.", null);
+    showScan({patient:"", orderId:"", date:"", boxesOD:"", boxesOS:"", phone:""}, "");
+  });
+}
+
+$("btnCamera").addEventListener("click", function(){ $("fileCamera").click(); });
+$("btnUpload").addEventListener("click", function(){ $("fileUpload").click(); });
+$("fileCamera").addEventListener("change", function(e){ handleFile(e.target.files[0]); e.target.value = ""; });
+$("fileUpload").addEventListener("change", function(e){ handleFile(e.target.files[0]); e.target.value = ""; });
+$("btnManual").addEventListener("click", function(){
+  editingKey = null;
+  fillReview({patient:"", orderId:"", date:"", boxesOD:"", boxesOS:"", phone:""}, "");
+});
+
+/* ---------- accept ---------- */
+function addRow(row){
+  // returns "ok" | "annual" | "dup"
+  var lens = row.lens;
+  var months = monthsSupply(row.boxesTotal, lens.boxes12mo);
+  if(isAnnualSupply(months)) return "annual";
+  var key = dedupKey(row.orderId, row.patient, row.purchaseDate);
+  for(var i = 0; i < state.rows.length; i++){
+    if(state.rows[i].key === key) return "dup";
+  }
+  var mRound = Math.round(months * 10) / 10;
+  state.rows.push({
+    key: key,
+    patient: row.patient,
+    email: row.email || "",
+    orderId: row.orderId,
+    purchaseDate: row.purchaseDate,
+    lensName: lens.name,
+    modality: lens.modality,
+    pack: lens.pack,
+    boxesOD: row.boxesOD,
+    boxesOS: row.boxesOS,
+    boxesTotal: row.boxesTotal,
+    monthsSupply: mRound,
+    reorderDate: reorderDateISO(row.purchaseDate, months),
+    month: monthKey(reorderDateISO(row.purchaseDate, months)),
+    notes: row.notes || "",
+    createdAt: Date.now()
+  });
+  saveState(state);
+  return "ok";
+}
+
+$("btnAccept").addEventListener("click", function(){
+  var alerts = $("reviewAlerts");
+  var patient = $("fPatient").value.trim();
+  var orderId = $("fOrder").value.trim();
+  var date = $("fDate").value;
+  var lens = currentLens();
+  var od = parseInt($("fOD").value, 10) || 0;
+  var os = parseInt($("fOS").value, 10) || 0;
+  var total = od + os;
+  var notes = $("fNotes").value.trim();
+  var phone = $("fPhone").value.trim();
+  var email = $("fEmail").value.trim();
+  if(phone && !notes) notes = phone;
+  else if(phone && notes) notes = phone + " \u00b7 " + notes;
+
+  // Annual first: an annual ticket is out of CLNO whatever else is still blank
+  // (a blacked-out name used to hide this behind "Patient name is required").
+  if(lens && total > 0 && isAnnualSupply(monthsSupply(total, lens.boxes12mo))){
+    alerts.innerHTML = '<div class="warn">' + esc(ANNUAL_MSG) + "</div>";
+    return;
+  }
+  if(reviewAnnualChecked){
+    alerts.innerHTML = annualBoxHTML();
+    return;
+  }
+  if(!patient){ alerts.innerHTML = '<div class="warn">Patient name is required.</div>'; return; }
+  if(!date){ alerts.innerHTML = '<div class="warn">Purchase date is required.</div>'; return; }
+  if(!lens){ alerts.innerHTML = '<div class="warn">Pick a lens from the price book.</div>'; return; }
+  if(eyeBlank()){ alerts.innerHTML = '<div class="warn">' + esc(BOTH_EYES_MSG) + "</div>"; return; }
+  if(total <= 0){ alerts.innerHTML = '<div class="warn">Enter boxes for at least one eye.</div>'; return; }
+
+  // Editing: the old row comes out only for the duplicate check and goes
+  // straight back if the edited version isn't accepted.
+  var oldAt = -1, old = null, i;
+  if(editingKey){
+    for(i = 0; i < state.rows.length; i++){
+      if(state.rows[i].key === editingKey){ oldAt = i; break; }
+    }
+    if(oldAt !== -1) old = state.rows.splice(oldAt, 1)[0];
+  }
+  var res = addRow({
+    patient: patient, orderId: orderId, purchaseDate: date,
+    lens: lens, boxesOD: od, boxesOS: os, boxesTotal: total, notes: notes, email: email
+  });
+  if(res !== "ok" && old){ state.rows.splice(oldAt, 0, old); saveState(state); }
+  if(res === "annual"){
+    alerts.innerHTML = '<div class="warn">' + esc(ANNUAL_MSG) + "</div>";
+    return;
+  }
+  if(res === "dup"){
+    alerts.innerHTML = '<div class="warn">' + esc(DUP_MSG) + "</div>";
+    return;
+  }
+  // success: reset and go to tracker
+  editingKey = null;
+  $("revBadge").textContent = "";
+  fillReviewSilent();
+  showTab("tracker");
+});
+
+function fillReviewSilent(){
+  ["fPatient","fOrder","fDate","fOD","fOS","fPhone","fEmail","fNotes"].forEach(function(id){ $(id).value = ""; });
+  lensSel.selectedIndex = -1;
+  reviewAnnualChecked = false;
+  $("lensWarn").style.display = "none";
+  $("lensSuggest").innerHTML = "";
+  $("lensSuggest").style.display = "none";
+  $("lensPackHint").style.display = "none";
+  $("emailHint").style.display = "none";
+  lastScan = null;
+  $("scanNotes").innerHTML = "";
+  renderNameHints([]);
+  $("rawWrap").style.display = "none";
+  $("reviewAlerts").innerHTML = "";
+  refreshCalc();
+}
+
+$("btnDiscard").addEventListener("click", function(){
+  editingKey = null; // an edited row stays in the tracker exactly as it was
+  $("revBadge").textContent = "";
+  fillReviewSilent();
+  showTab("scan");
+});
+
+/* Copy the raw OCR text so it can be sent for reader tuning. */
+$("btnCopyRaw").addEventListener("click", function(){
+  var btn = $("btnCopyRaw");
+  var t = $("rawText").textContent || "";
+  function done(ok){
+    btn.textContent = ok ? "Copied" : "Copy failed \u2014 select it manually";
+    setTimeout(function(){ btn.textContent = "Copy raw text"; }, 1600);
+  }
+  function legacy(){
+    try{
+      var ta = document.createElement("textarea");
+      ta.value = t;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      var ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      done(!!ok);
+    }catch(e){ done(false); }
+  }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(function(){ done(true); }, function(){ legacy(); });
+  } else {
+    legacy();
+  }
+});
+
+/* ---------- tracker list ---------- */
+function renderTracker(){
+  var list = $("trkList");
+  $("trkCount").textContent = state.rows.length ? "(" + state.rows.length + ")" : "";
+  if(!state.rows.length){
+    list.innerHTML = '<div class="empty">Nothing in the tracker yet.<br>Scan your first ticket to start.</div>';
+    return;
+  }
+  var rows = state.rows.slice().sort(function(a, b){
+    return a.reorderDate < b.reorderDate ? -1 : 1;
+  });
+  var html = "", lastMonth = "";
+  rows.forEach(function(r, i){
+    if(r.month !== lastMonth){
+      lastMonth = r.month;
+      html += '<div class="monthhead">Contact in ' + esc(fmtMonthYear(r.reorderDate)) + "</div>";
+    }
+    html += '<div class="item" data-i="' + state.rows.indexOf(r) + '">' +
+      '<div class="top"><span class="nm">' + esc(r.patient) + '</span>' +
+      '<span class="rd">' + esc(fmtMonthYear(r.reorderDate)) + "</span></div>" +
+      '<div class="meta">' + esc(r.lensName) + " \u00b7 " + r.boxesTotal + " boxes \u00b7 " +
+        r.monthsSupply + "-mo supply<br>Bought " + esc(fmtDate(r.purchaseDate)) +
+        (r.orderId ? " \u00b7 " + esc(r.orderId) : "") +
+        (r.email ? "<br>" + esc(r.email) : "") +
+        (r.notes ? "<br>" + esc(r.notes) : "") + "</div>" +
+      '<div class="acts"><button class="edit">Edit</button><button class="del">Delete</button></div></div>';
+  });
+  list.innerHTML = html;
+  list.querySelectorAll(".item").forEach(function(el){
+    var idx = parseInt(el.dataset.i, 10);
+    el.querySelector(".edit").addEventListener("click", function(){ editRow(idx); });
+    el.querySelector(".del").addEventListener("click", function(){
+      if(confirm("Delete " + state.rows[idx].patient + " from the tracker?")){
+        state.rows.splice(idx, 1);
+        saveState(state);
+        renderTracker();
+      }
+    });
+  });
+}
+
+function editRow(idx){
+  var r = state.rows[idx];
+  // The row stays in the tracker until the edit is accepted (Accept swaps it and
+  // re-checks dedup/annual). It used to be deleted here, so Edit then Discard lost it.
+  editingKey = r.key;
+  // name AND pack: "MiSight 1 day" is in the price book twice (90 and 180 pk)
+  var li = PRICEBOOK.findIndex(function(e){ return e[0] === r.lensName && (r.pack == null || e[3] === r.pack); });
+  fillReview({
+    patient: r.patient, orderId: r.orderId, date: r.purchaseDate,
+    boxesOD: String(r.boxesOD), boxesOS: String(r.boxesOS), phone: "", email: r.email || ""
+  }, "");
+  if(li >= 0){ lensSel.value = String(li); $("lensWarn").style.display = "none"; }
+  $("fNotes").value = r.notes || "";
+  refreshCalc();
+}
+
+/* ---------- export ---------- */
+var EXPORT_COLS = ["Patient","Email","Ticket/Order ID","Purchase Date","Lens","Boxes","Months Supply","Reorder Date","Notes"];
+
+function rowToArray(r){
+  return [
+    r.patient,
+    r.email || "",
+    r.orderId || "",
+    dateObj(r.purchaseDate),
+    r.lensName,
+    r.boxesTotal,
+    r.monthsSupply,
+    dateObj(r.reorderDate),
+    r.notes || ""
+  ];
+}
+function dateObj(iso){
+  var p = String(iso).split("-");
+  return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+}
+
+function renderExport(){
+  $("expMain").textContent = state.rows.length;
+  var months = {};
+  state.rows.forEach(function(r){ months[r.month] = 1; });
+  $("expMonths").textContent = Object.keys(months).length;
+  $("expRows").textContent = state.rows.length;
+}
+
+$("btnExport").addEventListener("click", function(){
+  var st = $("expStatus");
+  if(typeof XLSX === "undefined"){
+    st.textContent = "File writer not loaded \u2014 needs internet once, then it is cached.";
+    return;
+  }
+  if(!state.rows.length){ st.textContent = "Nothing to export yet."; return; }
+  try{
+    var wb = XLSX.utils.book_new();
+    var main = state.rows.slice().sort(function(a, b){
+      return a.reorderDate < b.reorderDate ? -1 : 1;
+    }).map(rowToArray);
+    var ws = XLSX.utils.aoa_to_sheet([EXPORT_COLS].concat(main));
+    ws["!cols"] = [{wch:22},{wch:26},{wch:16},{wch:13},{wch:34},{wch:7},{wch:13},{wch:13},{wch:24}];
+    XLSX.utils.book_append_sheet(wb, ws, "Main");
+    var byMonth = {};
+    state.rows.forEach(function(r){
+      (byMonth[r.month] = byMonth[r.month] || []).push(r);
+    });
+    Object.keys(byMonth).sort().forEach(function(mk){
+      var arr = byMonth[mk].map(rowToArray);
+      var w = XLSX.utils.aoa_to_sheet([EXPORT_COLS].concat(arr));
+      w["!cols"] = ws["!cols"];
+      XLSX.utils.book_append_sheet(wb, w, mk);
+    });
+    var d = new Date();
+    var fname = "CLNO-tracker-" + d.getFullYear() + pad2(d.getMonth() + 1) + pad2(d.getDate()) + ".xlsx";
+    XLSX.writeFile(wb, fname);
+    st.textContent = "Exported " + fname + " (" + state.rows.length + " rows).";
+  }catch(e){
+    st.textContent = "Export failed: " + e.message;
+  }
+});
+
+$("btnWipe").addEventListener("click", function(){
+  if(!state.rows.length){ return; }
+  if(confirm("Delete ALL " + state.rows.length + " rows from this phone? This cannot be undone.")){
+    state = {rows: []};
+    saveState(state);
+    renderExport();
+  }
+});
+
+/* expose core fns for tests */
+window.__clno = {
+  PRICEBOOK: PRICEBOOK, norm: norm, findLens: findLens,
+  suggestLenses: suggestLenses, rankLenses: rankLenses,
+  looksLikeName: looksLikeName, orderIdFromToken: orderIdFromToken,
+  monthsSupply: monthsSupply, isAnnualSupply: isAnnualSupply,
+  reorderDateISO: reorderDateISO, fmtMonthYear: fmtMonthYear,
+  dedupKey: dedupKey, parseTicket: parseTicket,
+  addRow: addRow, loadState: loadState,
+  matchLens: matchLens, rankLensesScoped: rankLensesScoped, eyeRow: eyeRow,
+  extractOrderTable: extractOrderTable, extractCollection: extractCollection,
+  extractTimestampDate: extractTimestampDate, extractLooseDate: extractLooseDate,
+  extractPhone: extractPhone, extractEmail: extractEmail, extractBarcodeOrderId: extractBarcodeOrderId,
+  plausibleName: plausibleName, isPack: isPack, PACKS: PACKS,
+  editRow: editRow, getState: function(){ return state; }
+};
+
+renderExport();
+})();
+</script>
+</body>
+</html>
